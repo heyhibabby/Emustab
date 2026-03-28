@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Stabilisers and Emulsifiers System V17.1 (Complete Stabilisers & Emulsifiers)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --cream: #FDF6E3; --vanilla: #F5E6C4; --caramel: #C8874A; --chocolate: #3D1F0D;
+    --mint: #2D6B55; --berry: #7B3F6E; --steel: #4A5568; --gold: #D4A843;
+    --pale: #FAF5ED; --shadow: rgba(61,31,13,.12); --red: #C0392B; --orange: #E67E22;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--chocolate); width: 100%; overflow-x: hidden; font-size: 14px; }
+.header { background: var(--chocolate); color: var(--cream); padding: 16px 20px; border-bottom: 4px solid var(--caramel); }
+.header-icon { font-size: 2rem; line-height: 1; margin-bottom: 5px; }
+.header-text h1 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; line-height: 1.2; color: var(--cream); }
+.header-text p.sub { font-size: .75rem; color: var(--cream); margin-top: 4px; }
+.header-text p.stats { font-size: .65rem; color: var(--caramel); margin-top: 4px; font-weight: 600; }
+.toolbar { background: #fff; padding: 10px 16px; border-bottom: 1px solid var(--vanilla); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.toolbar-btn { padding: 6px 12px; background: var(--pale); border: 1.5px solid var(--vanilla); border-radius: 8px; font-size: .7rem; font-weight: 600; color: var(--chocolate); cursor: pointer; }
+.toolbar-btn:hover { border-color: var(--caramel); background: #fff; }
+.container { max-width: 1600px; margin: 0 auto; padding: 16px; }
+.grid-main { display: grid; grid-template-columns: 420px 1fr; gap: 16px; align-items: start; }
+.card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px var(--shadow); overflow: hidden; margin-bottom: 14px; width: 100%; }
+.card-header { padding: 10px 14px; border-bottom: 1px solid var(--vanilla); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: linear-gradient(135deg, #fff, var(--pale)); }
+.card-header h2 { font-family: 'DM Serif Display', serif; font-size: .85rem; color: var(--chocolate); }
+.card-body { padding: 12px; }
+.fsec-title { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--caramel); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px dashed var(--vanilla); margin-top: 10px; }
+.fsec-title:first-child { margin-top: 0; }
+.field { margin-bottom: 6px; }
+.field label { display: block; font-size: .65rem; font-weight: 500; color: var(--steel); margin-bottom: 2px; }
+.field input, .field select { width: 100%; padding: 5px 6px; border: 1.5px solid var(--vanilla); border-radius: 6px; font-size: .75rem; font-family: 'DM Mono', monospace; background: var(--pale); color: var(--chocolate); }
+.field-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px; }
+.field-unit { display: flex; align-items: center; }
+.field-unit input { border-radius: 6px 0 0 6px; border-right: none; flex: 1; }
+.unit-badge { padding: 5px 6px; background: var(--vanilla); border: 1.5px solid var(--vanilla); border-left: none; border-radius: 0 6px 6px 0; font-size: .6rem; color: var(--steel); font-family: 'DM Mono', monospace; white-space: nowrap; }
+.info-note { font-size: .55rem; color: var(--steel); margin-top: 2px; display: block; }
+
+/* Sugar Blend - Two Row Layout with Sweetness */
+.sugar-blend-container { background: var(--pale); border-radius: 10px; padding: 10px; margin-bottom: 12px; border: 1.5px solid var(--vanilla); }
+.sugar-item { background: #fff; border-radius: 8px; margin-bottom: 10px; padding: 8px; border: 1px solid var(--vanilla); }
+.sugar-item:last-child { margin-bottom: 0; }
+.sugar-row-top { display: grid; grid-template-columns: 1fr 70px 80px; gap: 8px; margin-bottom: 8px; align-items: center; }
+.sugar-row-bottom { display: grid; grid-template-columns: 1fr 1fr 80px 40px; gap: 8px; align-items: center; }
+.sugar-select { width: 100%; padding: 6px 8px; border: 1.5px solid var(--vanilla); border-radius: 6px; font-size: .7rem; font-family: 'DM Sans', sans-serif; background: #fff; }
+.sugar-quantity { width: 100%; padding: 6px 8px; border: 1.5px solid var(--vanilla); border-radius: 6px; font-size: .7rem; font-family: 'DM Mono', monospace; text-align: center; }
+.sugar-percent { width: 100%; padding: 6px 8px; border: 1.5px solid var(--vanilla); border-radius: 6px; font-size: .7rem; font-family: 'DM Mono', monospace; text-align: center; background: #f5f0e8; }
+.sugar-pac, .sugar-pod, .sugar-sweetness { width: 100%; padding: 6px 8px; border: 1.5px solid var(--vanilla); border-radius: 6px; font-size: .7rem; font-family: 'DM Mono', monospace; text-align: center; background: #f5f0e8; }
+.remove-sugar-btn { background: rgba(192, 57, 43, .1); border: none; border-radius: 6px; padding: 6px 8px; cursor: pointer; font-size: .7rem; color: var(--red); width: 100%; text-align: center; }
+.remove-sugar-btn:hover { background: rgba(192, 57, 43, .2); }
+.add-sugar-btn { background: var(--mint); color: white; border: none; border-radius: 6px; padding: 8px; font-size: .7rem; cursor: pointer; font-weight: 500; margin-top: 8px; width: 100%; }
+.sugar-summary { background: var(--vanilla); border-radius: 8px; padding: 10px; margin-top: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.sugar-summary-item { text-align: center; flex: 1; min-width: 80px; }
+.sugar-summary-item .label { font-size: .55rem; color: var(--steel); text-transform: uppercase; }
+.sugar-summary-item .value { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 700; color: var(--chocolate); }
+
+.composition-error { background: rgba(192, 57, 43, .2); border-left: 4px solid var(--red); padding: 6px 10px; margin-bottom: 8px; border-radius: 6px; font-size: .65rem; color: var(--red); }
+.composition-success { background: rgba(45, 107, 85, .1); border-left: 4px solid var(--mint); padding: 6px 10px; margin-bottom: 8px; border-radius: 6px; font-size: .65rem; color: var(--chocolate); }
+.composition-warning { background: rgba(230, 126, 34, .1); border-left: 4px solid var(--orange); padding: 6px 10px; margin-bottom: 8px; border-radius: 6px; font-size: .65rem; color: var(--chocolate); }
+.warn-band { background: rgba(192, 57, 43, .07); border-left: 3px solid var(--red); border-radius: 0 6px 6px 0; padding: 5px 8px; font-size: .65rem; color: var(--chocolate); margin-bottom: 6px; }
+.info-band { background: rgba(212, 168, 67, .08); border-left: 3px solid var(--gold); border-radius: 0 6px 6px 0; padding: 5px 8px; font-size: .65rem; color: var(--chocolate); margin-bottom: 6px; }
+.item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 6px; max-height: 350px; overflow-y: auto; padding-right: 4px; }
+.sel-item { border: 2px solid var(--vanilla); border-radius: 8px; padding: 5px 6px; cursor: pointer; transition: all .14s; position: relative; }
+.sel-item:hover { border-color: var(--caramel); background: var(--pale); }
+.sel-item.on { border-color: var(--mint); background: rgba(45, 107, 85, .06); }
+.sel-item.on::after { content: '✓'; position: absolute; top: 2px; right: 5px; font-size: .55rem; color: var(--mint); font-weight: 700; }
+.sel-item.emu-on { border-color: var(--gold); background: rgba(212, 168, 67, .09); }
+.sel-item.emu-on::after { content: '✓'; position: absolute; top: 2px; right: 5px; font-size: .55rem; color: var(--gold); }
+.sel-item.disabled-item { opacity: 0.4; background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.06); cursor: not-allowed; pointer-events: none; }
+.item-number { display: inline-block; background: var(--vanilla); border-radius: 10px; padding: 0px 3px; font-size: .45rem; margin-right: 3px; color: var(--steel); font-weight: 600; }
+.sym { float: right; font-size: 0.65rem; opacity: 0.9; }
+.iname { font-size: .68rem; font-weight: 600; color: var(--chocolate); line-height: 1.2; }
+.itag { font-size: .55rem; color: var(--steel); margin-top: 2px; }
+.preset-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.btn-sm { font-size: .6rem; padding: 3px 8px; border-radius: 6px; border: 1.5px solid var(--vanilla); background: var(--pale); color: var(--steel); cursor: pointer; }
+.btn-sm:hover { border-color: var(--caramel); color: var(--caramel); }
+.btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.btn-calc { flex: 1; padding: 8px; background: var(--chocolate); color: var(--cream); font-family: 'DM Serif Display', serif; font-size: .85rem; border: none; border-radius: 8px; cursor: pointer; }
+.btn-auto { flex: 1; padding: 8px; background: linear-gradient(135deg, var(--gold), #e6bc5a); color: var(--chocolate); font-family: 'DM Serif Display', serif; font-size: .85rem; border: none; border-radius: 8px; cursor: pointer; }
+.results-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; color: var(--caramel); gap: 10px; text-align: center; }
+.type-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .6rem; font-weight: 700; margin-bottom: 8px; }
+.type-sorbet { background: rgba(123, 63, 110, .12); color: var(--berry); }
+.type-gelato { background: rgba(200, 135, 74, .15); color: #8B5E2A; }
+.type-icecream { background: rgba(45, 107, 85, .12); color: var(--mint); }
+.sec-sub { font-size: .55rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--caramel); margin-bottom: 6px; }
+.rtitle { font-family: 'DM Serif Display', serif; font-size: .8rem; color: var(--chocolate); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+.results-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.results-grid-4-nutrition { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.results-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.sc { background: var(--pale); border-radius: 8px; padding: 6px 4px; text-align: center; border: 1px solid var(--vanilla); }
+.sc .val { font-family: 'DM Mono', monospace; font-size: .85rem; font-weight: 700; color: var(--chocolate); line-height: 1.2; }
+.sc .lbl { font-size: .5rem; color: var(--steel); margin-top: 2px; font-weight: 500; text-transform: uppercase; }
+.stab-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; padding: 6px 8px; border-radius: 8px; background: var(--pale); border: 1.5px solid var(--vanilla); margin-bottom: 5px; align-items: center; }
+.emu-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(212, 168, 67, .07); border: 1.5px solid rgba(212, 168, 67, .28); margin-bottom: 5px; align-items: center; }
+.rn { font-weight: 600; font-size: .7rem; color: var(--chocolate); }
+.rs { font-size: .55rem; color: var(--steel); margin-top: 2px; }
+.rp, .ep { font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--steel); text-align: right; }
+.rg, .eg { font-family: 'DM Mono', monospace; font-size: .7rem; font-weight: 600; text-align: right; min-width: 45px; }
+.rg { color: var(--mint); }
+.eg { color: var(--gold); }
+.bar-wrap { grid-column: 1/-1; height: 2px; background: var(--vanilla); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--mint); border-radius: 2px; }
+.char-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+.char-item { background: var(--pale); border-radius: 8px; padding: 6px 8px; border: 1.5px solid var(--vanilla); }
+.clabel { font-size: .55rem; font-weight: 700; color: var(--steel); text-transform: uppercase; margin-bottom: 3px; }
+.cbar { height: 3px; background: var(--vanilla); border-radius: 3px; overflow: hidden; margin-bottom: 2px; }
+.cfill { height: 100%; border-radius: 3px; }
+.cval { font-size: .55rem; color: var(--steel); text-align: right; font-family: 'DM Mono', monospace; }
+.notes-box { background: rgba(200, 135, 74, .07); border: 1.5px solid rgba(200, 135, 74, .22); border-radius: 8px; padding: 8px 10px; max-height: 250px; overflow-y: auto; }
+.nlist { list-style: none; }
+.nlist li { font-size: .65rem; color: var(--steel); padding: 2px 0 2px 12px; position: relative; line-height: 1.3; }
+.nlist li::before { content: '›'; position: absolute; left: 2px; color: var(--caramel); }
+.divider { border: none; border-top: 1px dashed var(--vanilla); margin: 8px 0; }
+#toastBox { visibility: hidden; min-width: 220px; background-color: var(--mint); color: #fff; text-align: center; border-radius: 8px; padding: 8px 12px; position: fixed; z-index: 9999; left: 50%; top: 20px; transform: translateX(-50%); font-size: .7rem; font-weight: 600; opacity: 0; transition: opacity 0.3s, top 0.3s; }
+#toastBox.show { visibility: visible; opacity: 1; top: 30px; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 10000; display: none; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: #fff; padding: 16px; border-radius: 12px; width: 90%; max-width: 320px; }
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 1rem; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.close-btn { background: none; border: none; font-size: 1rem; cursor: pointer; }
+.recipe-list { list-style: none; max-height: 280px; overflow-y: auto; }
+.recipe-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+.recipe-name { cursor: pointer; flex: 1; font-size: .75rem; }
+.del-btn { background: rgba(192, 57, 43, .1); border: none; border-radius: 4px; padding: 2px 5px; cursor: pointer; font-size: .65rem; }
+@media (max-width: 1000px) { .grid-main { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .results-grid-4, .results-grid-4-nutrition { grid-template-columns: repeat(2, 1fr); } .results-grid-3 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .field-inline { grid-template-columns: 1fr; } .item-grid { grid-template-columns: 1fr; } .results-grid-4, .results-grid-4-nutrition { grid-template-columns: 1fr; } .results-grid-3 { grid-template-columns: 1fr; } .char-grid { grid-template-columns: 1fr; } .stab-row { grid-template-columns: 1fr auto auto; } .sugar-row-top { grid-template-columns: 1fr 65px 70px; } .sugar-row-bottom { grid-template-columns: 1fr 1fr 70px 40px; } }
+</style>
+</head>
+<body>
+<div id="toastBox"></div>
+<div class="modal-overlay" id="loadModal"><div class="modal-box"><div class="modal-title"><span>📂 Load Recipe</span><button class="close-btn" onclick="closeLoadModal()">✖</button></div><ul class="recipe-list" id="recipeList"></ul></div></div>
+
+<div class="header">
+    <div class="header-icon">🍦</div>
+    <div class="header-text">
+        <h1>Stabilisers and Emulsifiers System V17.1</h1>
+        <p class="sub">Complete Stabilisers & Emulsifiers • Sugar Sweetness Integration • Lactose PAC/POD</p>
+        <p class="stats">45+ Stabilisers & 17+ Emulsifiers • Full Sugar Database with PAC/POD/Sweetness</p>
+    </div>
+</div>
+
+<div class="toolbar">
+    <button class="toolbar-btn" onclick="saveRecipe()">💾 Save Recipe</button>
+    <button class="toolbar-btn" onclick="openLoadModal()">📂 Load Recipe</button>
+    <button class="toolbar-btn" onclick="window.print()">📄 PDF Report</button>
+    <button class="toolbar-btn" onclick="exportExcel()">📊 Export CSV</button>
+</div>
+
+<div class="container">
+    <div class="grid-main">
+        <div>
+            <!-- SUGAR BLEND CARD -->
+            <div class="card">
+                <div class="card-header"><span>🍬</span><h2>1. Sugar Blend (Enter Batch Quantities in Grams)</h2></div>
+                <div class="card-body">
+                    <div class="field-inline">
+                        <div class="field"><label>Total Batch Size</label><div class="field-unit"><input type="number" id="totalMix" min="50" max="50000" step="10" value="1000" oninput="updateBatchSize()"><span class="unit-badge">g</span></div></div>
+                        <div class="field"><label>Machine Type</label><select id="machine" onchange="updateMachineBatch()"><option value="wand">Wand / Shaver (236g)</option><option value="ninja">Ninja Creami (473g)</option><option value="ninjadeluxe">Creami Deluxe (710g)</option><option value="pacojet">Pacojet (800g)</option><option value="home">Frozen Bowl (650g)</option><option value="batch" selected>Batch Freezer (1000g)</option><option value="continuous">Continuous Freezer (1000g)</option><option value="softserve">Soft Serve (2000g)</option><option value="popsicle">Popsicle (1000g)</option><option value="nochurn">No-Churn (1000g)</option></select></div>
+                    </div>
+                    <div class="sugar-blend-container" id="sugarBlendContainer">
+                        <div id="sugarItemsList"></div>
+                        <button class="add-sugar-btn" onclick="addSugarItem()">+ Add Sugar</button>
+                        <div class="sugar-summary">
+                            <div class="sugar-summary-item"><div class="label">Total Sweetness Value</div><div class="value" id="totalSweetnessValue">0</div></div>
+                            <div class="sugar-summary-item"><div class="label">Sugar % of Batch</div><div class="value" id="totalSugarPercent">0%</div></div>
+                            <div class="sugar-summary-item"><div class="label">Weighted Avg PAC</div><div class="value" id="weightedPAC">0.00</div></div>
+                            <div class="sugar-summary-item"><div class="label">Weighted Avg POD</div><div class="value" id="weightedPOD">0.00</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BASE COMPOSITION CARD -->
+            <div class="card">
+                <div class="card-header"><span>⚖️</span><h2>2. Base Composition (Total must = 100%)</h2></div>
+                <div class="card-body">
+                    <div id="massBalanceWarning" style="display:none;" class="composition-success"></div>
+                    <div id="solidsWarning" style="display:none;" class="composition-warning"></div>
+                    <div class="field-inline"><div class="field"><label>Water %</label><div class="field-unit"><input type="number" id="water" value="62" min="20" max="88" step="0.5" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div><div class="field"><label>Fat %</label><div class="field-unit"><input type="number" id="fat" value="10" min="0" max="25" step="0.5" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>MSNF %</label><div class="field-unit"><input type="number" id="msnf" value="11" min="0" max="18" step="0.5" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div><span class="info-note">(36% protein, 54.5% lactose)</span></div><div class="field"><label>Additional Protein %</label><div class="field-unit"><input type="number" id="protein" value="0" min="0" max="10" step="0.1" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Alcohol %</label><div class="field-unit"><input type="number" id="alcohol" value="0" min="0" max="10" step="0.1" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div><div class="field"><label>Other Solids %</label><div class="field-unit"><input type="number" id="otherSolids" value="3" min="0" max="20" step="0.1" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Fat Source</label><select id="fatType" onchange="updateAllCalculations()"><option value="dairy">Dairy</option><option value="coconut">Coconut</option><option value="veg">Other Plant Fat</option><option value="none">No Fat (Sorbet)</option></select></div><div class="field"><label>Salt % (NaCl)</label><div class="field-unit"><input type="number" id="salt" value="0" min="0" max="2" step="0.01" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- NUTRITIONAL PROFILE CARD -->
+            <div class="card">
+                <div class="card-header"><span>🥗</span><h2>3. Nutritional Profile (Calculated)</h2></div>
+                <div class="card-body">
+                    <div class="field-inline"><div class="field"><label>Total Solids</label><div class="field-unit"><input type="text" id="totalSolids" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div><div class="field"><label>Total Protein</label><div class="field-unit"><input type="text" id="totalProteinDisplay" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Lactose</label><div class="field-unit"><input type="text" id="lactoseDisplay" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div><div class="field"><label>Total Sugars</label><div class="field-unit"><input type="text" id="totalSugars" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Total Carbs</label><div class="field-unit"><input type="text" id="totalCarbs" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div><div class="field"><label>Hardening Factor</label><div class="field-unit"><input type="number" id="hardeningFactorInput" value="43.26" min="0" max="100" step="5" oninput="updateAllCalculations()"><span class="unit-badge">°C·kg/mol</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- FREEZING POINT PARAMETERS CARD -->
+            <div class="card">
+                <div class="card-header"><span>❄️</span><h2>4. Freezing Point Parameters</h2></div>
+                <div class="card-body">
+                    <div class="field-inline"><div class="field"><label>Calculated PAC</label><div class="field-unit"><input type="text" id="calculatedPAC" readonly style="background:#eee;"><span class="unit-badge">°C·kg/mol</span></div></div><div class="field"><label>Calculated POD</label><div class="field-unit"><input type="text" id="calculatedPOD" readonly style="background:#eee;"><span class="unit-badge">°C·kg/mol</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Target Frozen Water %</label><div class="field-unit"><input type="number" id="targetFrozenWater" value="75" min="0" max="95" step="5" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div><div class="field"><label>Serving Temperature</label><div class="field-unit"><input type="text" id="servingTemp" readonly style="background:#eee;"><span class="unit-badge">°C</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Initial Freezing Point</label><div class="field-unit"><input type="text" id="initialFreezingPoint" readonly style="background:#eee;"><span class="unit-badge">°C</span></div></div><div class="field"><label>Free Water (0% ice)</label><div class="field-unit"><input type="text" id="freeWaterZero" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Ice @ Serving Temp</label><div class="field-unit"><input type="text" id="iceAtServing" readonly style="background:#eee;"><span class="unit-badge">%</span></div></div><div class="field"><label>Hardness Factor Output</label><div class="field-unit"><input type="text" id="hardnessFactorDisplay" readonly style="background:#eee;"><span class="unit-badge">HF</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- PROCESS & STORAGE CARD -->
+            <div class="card">
+                <div class="card-header"><span>⚙️</span><h2>5. Process & Storage</h2></div>
+                <div class="card-body">
+                    <div class="field-inline"><div class="field"><label>Process Type</label><select id="process" onchange="updateProcessState()"><option value="hot">Hot Process (Cooked)</option><option value="cold">Cold Process (No Heat)</option></select></div><div class="field"><label>Homogenisation</label><div class="field-unit"><input type="number" id="homog" value="150" min="0" max="300" step="10" oninput="updateAllCalculations()"><span class="unit-badge">bar</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Overrun %</label><div class="field-unit"><input type="number" id="overrun" value="80" min="0" max="150" step="5" oninput="updateAllCalculations()"><span class="unit-badge">%</span></div></div><div class="field"><label>Storage Temp</label><div class="field-unit"><input type="number" id="storageT" value="-11" min="-30" max="0" step="1" oninput="updateAllCalculations()"><span class="unit-badge">°C</span></div></div></div>
+                    <div class="field-inline"><div class="field"><label>Shelf Life</label><div class="field-unit"><input type="number" id="shelfLife" value="3" min="1" max="24" step="1" oninput="updateAllCalculations()"><span class="unit-badge">mo</span></div></div><div class="field"><label>Distribution</label><select id="mode" onchange="updateAllCalculations()"><option value="local">Local</option><option value="retail">Retail</option><option value="export">Export</option></select></div></div>
+                </div>
+            </div>
+
+            <!-- STABILISERS CARD - COMPLETE LIST -->
+            <div class="card">
+                <div class="card-header"><span>🧪</span><h2>6. Select Stabilisers & Proteins (% of total mix)</h2></div>
+                <div class="card-body">
+                    <div id="stabValidationMsg" class="warn-band" style="display:none;"></div>
+                    <div class="preset-row"><button class="btn-sm" onclick="sNone()">Clear</button><button class="btn-sm" onclick="preset('premium')">Premium</button><button class="btn-sm" onclick="preset('sorbet')">Sorbet</button><button class="btn-sm" onclick="preset('gelato')">Gelato</button><button class="btn-sm" onclick="preset('kulfi')">Kulfi</button><button class="btn-sm" onclick="preset('dondurma')">Dondurma</button><button class="btn-sm" onclick="preset('mochi')">Mochi</button><button class="btn-sm" onclick="preset('commercial')">Commercial</button><button class="btn-sm" onclick="preset('highprotein')">High Protein</button></div>
+                    <div class="item-grid" id="stabGrid"></div>
+                </div>
+            </div>
+
+            <!-- EMULSIFIERS CARD - COMPLETE LIST -->
+            <div class="card">
+                <div class="card-header"><span>⚡</span><h2>7. Select Emulsifiers (% of total mix)</h2></div>
+                <div class="card-body">
+                    <div id="emuHLBWarning" class="info-band" style="display:none;"></div>
+                    <div id="emuValidationMsg" class="warn-band" style="display:none;"></div>
+                    <div class="preset-row"><button class="btn-sm" onclick="eNone()">Clear</button><button class="btn-sm" onclick="ePreset('standard')">Standard</button><button class="btn-sm" onclick="ePreset('natural')">Natural</button><button class="btn-sm" onclick="ePreset('pro')">Pro Aeration</button></div>
+                    <div class="item-grid" id="emuGrid"></div>
+                </div>
+            </div>
+
+            <div class="btn-row"><button class="btn-calc" onclick="triggerManualCalc()">🔬 Manual Calc</button><button class="btn-auto" onclick="autoFormulate()">✨ Auto Formulate</button></div>
+        </div>
+
+        <div class="card"><div class="card-header"><span>📊</span><h2>Formulation Results</h2></div><div class="card-body"><div id="resultsArea"><div class="results-placeholder"><div class="bi">🍨</div><p>Enter parameters, select ingredients or Auto Formulate.</p></div></div></div></div>
+    </div>
+</div>
+
+<script>
+// =============== COMPLETE SUGAR DATABASE (32 Sugars) ===============
+const SUGAR_DB = [
+    { name: "Allulose", pac: 190.00, pod: 70.00, sweetness: 70 },
+    { name: "Dextrose", pac: 175.00, pod: 71.00, sweetness: 92 },
+    { name: "Erytritol", pac: 280.00, pod: 70.00, sweetness: 100 },
+    { name: "Fructose", pac: 190.00, pod: 170.00, sweetness: 170 },
+    { name: "Glucose powder 20 DE", pac: 37.00, pod: 16.00, sweetness: 19 },
+    { name: "Glucose powder 30 DE", pac: 56.00, pod: 24.00, sweetness: 28.5 },
+    { name: "Glucose powder 40 DE", pac: 78.00, pod: 34.00, sweetness: 38 },
+    { name: "Glucose Syrup 23 DE", pac: 44.00, pod: 18.00, sweetness: 23 },
+    { name: "Glucose syrup 40DE", pac: 70.00, pod: 48.00, sweetness: 22 },
+    { name: "Glucose Syrup Ask Foods", pac: 64.00, pod: 36.00, sweetness: 36.6 },
+    { name: "Glucose syrup DE60", pac: 95.00, pod: 68.00, sweetness: 23 },
+    { name: "Gulkand", pac: 42.00, pod: 42.00, sweetness: 42 },
+    { name: "High Fructose Corn Syrup 42", pac: 180.00, pod: 86.00, sweetness: 75.6 },
+    { name: "Honey", pac: 150.00, pod: 130.00, sweetness: 80 },
+    { name: "Invert sugar / Trimoline", pac: 150.00, pod: 100.00, sweetness: 72.5 },
+    { name: "Lactose", pac: 100.00, pod: 16.00, sweetness: 16 },
+    { name: "Maltodextrin 19DE", pac: 23.00, pod: 9.00, sweetness: 7 },
+    { name: "Maltose", pac: 100.00, pod: 40.00, sweetness: 60.4 },
+    { name: "Maple Syrup", pac: 44.00, pod: 18.00, sweetness: 98 },
+    { name: "Muscovado sugar, light", pac: 98.00, pod: 98.00, sweetness: 100 },
+    { name: "Sorbitol", pac: 187.90, pod: 60.00, sweetness: 77 },
+    { name: "Stevia (Pure)", pac: 35.00, pod: 25000.00, sweetness: 300 },
+    { name: "Stevia (Mix)", pac: 170.00, pod: 100.00, sweetness: 100 },
+    { name: "Sucrose", pac: 100.00, pod: 100.00, sweetness: 100 },
+    { name: "Sugar", pac: 100.00, pod: 100.00, sweetness: 100 },
+    { name: "Sugar syrup 50/50", pac: 50.00, pod: 50.00, sweetness: 50 },
+    { name: "Sugarcane Juice", pac: 73.00, pod: 73.00, sweetness: 73 },
+    { name: "Tang Pineapple", pac: 92.00, pod: 92.00, sweetness: 92 },
+    { name: "Trehalose", pac: 100.00, pod: 45.00, sweetness: 45 },
+    { name: "Vegetable Glycerin", pac: 400.00, pod: 60.00, sweetness: 100 },
+    { name: "Xylitol", pac: 225.00, pod: 100.00, sweetness: 100 },
+    { name: "Zero Sugar Liquid Maltitol Lycasin Purix", pac: 67.90, pod: 30.00, sweetness: 100 }
+];
+SUGAR_DB.sort((a, b) => a.name.localeCompare(b.name));
+
+// =============== COMPLETE STABILISERS DATASET (45 Stabilisers) ===============
+const STABS = [
+    {num:1,id:'xanthan',name:'Xanthan Gum (E415)',tag:'Cold / universal',hydration:'Cold, needs shear',cls:'gum',cold:true,ft:90,mc:72,ic:88,tx:68,base:0.025,mn:0.010,mx:0.030,notes:'0.01–0.03% in blends. Cold-hydrating, shear-stable.'},
+    {num:2,id:'guar',name:'Guar Gum (E412)',tag:'Body control',hydration:'Cold, 10-15 min',cls:'gum',cold:true,ft:58,mc:64,ic:55,tx:74,base:0.065,mn:0.03,mx:0.12,notes:'0.04–0.10% in blends. Fast cold hydration.'},
+    {num:3,id:'lgb',name:'Locust Bean Gum (E410)',tag:'Crystal control',hydration:'Heat 85-90°C',cls:'gum',cold:false,ft:82,mc:70,ic:90,tx:88,base:0.085,mn:0.05,mx:0.12,notes:'0.05–0.12% typical. Gold standard. MUST be heated.'},
+    {num:4,id:'cmc',name:'CMC / Cellulose Gum (E466)',tag:'Meltdown control',hydration:'Cold, high shear',cls:'gum',cold:true,ft:74,mc:90,ic:78,tx:60,base:0.13,mn:0.06,mx:0.18,notes:'0.08–0.20% typical. Excellent meltdown control.'},
+    {num:5,id:'kappa',name:'Kappa Carrageenan (E407)',tag:'Dairy gel',hydration:'Heat 60-70°C',cls:'gum',cold:false,ft:52,mc:80,ic:65,tx:80,base:0.015,mn:0.010,mx:0.025,notes:'0.01–0.02% in dairy only. INEFFECTIVE IN SORBET.'},
+    {num:6,id:'lambda',name:'Lambda Carrageenan (E407)',tag:'Wheying-off',hydration:'Cold, needs shear',cls:'gum',cold:true,ft:60,mc:85,ic:50,tx:88,base:0.020,mn:0.010,mx:0.035,notes:'0.01–0.03%. Non-gelling, prevents wheying-off.'},
+    {num:7,id:'iota',name:'Iota Carrageenan (E407)',tag:'Elastic gel',hydration:'Heat 60-70°C',cls:'gum',cold:false,ft:70,mc:72,ic:65,tx:84,base:0.025,mn:0.010,mx:0.05,notes:'0.01–0.04%. Elastic, freeze-thaw stable gel.'},
+    {num:8,id:'tara',name:'Tara Gum (E417)',tag:'LBG alternative',hydration:'Heat 70-75°C',cls:'gum',cold:false,ft:75,mc:68,ic:80,tx:83,base:0.10,mn:0.05,mx:0.20,notes:'0.05–0.15% typical.'},
+    {num:9,id:'pectin',name:'HM Pectin (E440i)',tag:'Sorbet',hydration:'Hot 85°C',cls:'gum',cold:false,ft:48,mc:58,ic:52,tx:73,base:0.18,mn:0.10,mx:0.35,notes:'0.10–0.30% for sorbet. Requires pH<4.5.'},
+    {num:10,id:'agar',name:'Agar Agar (E406)',tag:'Firm gel',hydration:'Boil 90°C+',cls:'gum',cold:false,ft:60,mc:85,ic:55,tx:65,base:0.15,mn:0.05,mx:0.30,notes:'Forms very firm gel. MUST BE BOILED.'},
+    {num:11,id:'alginate',name:'Sodium Alginate (E401)',tag:'Calcium reactive',hydration:'Cold',cls:'gum',cold:true,ft:78,mc:82,ic:85,tx:70,base:0.09,mn:0.05,mx:0.20,notes:'0.04–0.12%. Reacts with calcium.'},
+    {num:12,id:'konjac',name:'Konjac Glucomannan (E425)',tag:'Synergistic',hydration:'Cold/Warm',cls:'gum',cold:true,ft:80,mc:85,ic:75,tx:80,base:0.05,mn:0.02,mx:0.10,notes:'0.03–0.10%. Strong synergy with xanthan.'},
+    {num:13,id:'tragacanth',name:'Tragacanth Gum (E413)',tag:'Traditional',hydration:'Cold, 30-60min',cls:'gum',cold:true,ft:68,mc:62,ic:55,tx:78,base:0.12,mn:0.05,mx:0.22,notes:'0.08–0.18%. Traditional artisan stabiliser.'},
+    {num:14,id:'gellan',name:'Gellan Gum (E418)',tag:'Very potent',hydration:'Heat 70-80°C',cls:'gum',cold:false,ft:68,mc:74,ic:70,tx:65,base:0.015,mn:0.006,mx:0.030,notes:'0.008–0.025%. EXTREMELY POTENT.'},
+    {num:15,id:'methylcellulose',name:'Methylcellulose (E461)',tag:'Reverse gel',hydration:'Cold',cls:'gum',cold:true,ft:85,mc:95,ic:75,tx:70,base:0.15,mn:0.10,mx:0.30,notes:'0.10–0.30%. Unique reverse gelation.'},
+    {num:16,id:'hpmc',name:'HPMC (E464)',tag:'Water balance',hydration:'Cold',cls:'gum',cold:true,ft:82,mc:88,ic:80,tx:75,base:0.15,mn:0.10,mx:0.30,notes:'0.10–0.30%. Excellent for kulfi.'},
+    {num:17,id:'mastic',name:'Mastic Resin',tag:'Chewy',hydration:'Cold/Shear',cls:'gum',cold:true,ft:60,mc:85,ic:65,tx:95,base:0.03,mn:0.02,mx:0.05,notes:'0.02–0.05%. Traditional in Dondurma.'},
+    {num:18,id:'betaglucan',name:'Beta-Glucan',tag:'Soluble fiber',hydration:'Cold',cls:'gum',cold:true,ft:75,mc:70,ic:75,tx:80,base:0.20,mn:0.10,mx:0.30,notes:'0.10–0.30%. Functional health ingredient.'},
+    {num:19,id:'fenugreek',name:'Fenugreek Gum (E499)',tag:'Kulfi',hydration:'Cold',cls:'gum',cold:true,ft:78,mc:72,ic:80,tx:82,base:0.10,mn:0.05,mx:0.15,notes:'0.05–0.15%. Traditional in Indian kulfi.'},
+    {num:20,id:'cremodan',name:'Cremodan® SE 30',tag:'Complete system',hydration:'Hot/Cold',cls:'gum',cold:true,ft:88,mc:92,ic:85,tx:90,base:0.25,mn:0.15,mx:0.45,notes:'COMPLETE STABILISER + EMULSIFIER blend.'},
+    {num:21,id:'grindsted',name:'Grindsted® IcePro',tag:'Complete system',hydration:'Hot',cls:'gum',cold:false,ft:85,mc:90,ic:88,tx:85,base:0.22,mn:0.12,mx:0.40,notes:'COMPLETE stabiliser + emulsifier system.'},
+    {num:22,id:'gelatin',name:'Gelatin (INS 441)',tag:'Classic melt',hydration:'Warm 50-60°C',cls:'bulk',cold:false,ft:75,mc:85,ic:70,tx:92,base:0.30,mn:0.10,mx:0.50,notes:'0.10–0.50%. NOT vegetarian.'},
+    {num:23,id:'cornstarch',name:'Corn Starch',tag:'Gelato',hydration:'Cook 90°C',cls:'bulk',cold:false,ft:85,mc:70,ic:80,tx:78,base:3.0,mn:1.0,mx:4.0,notes:'1.0–4.0%. Traditional Sicilian gelato.'},
+    {num:24,id:'tapioca',name:'Tapioca Starch',tag:'Stretchy',hydration:'Cook 80-85°C',cls:'bulk',cold:false,ft:82,mc:68,ic:75,tx:88,base:2.5,mn:1.0,mx:5.0,notes:'1.0–5.0%. Provides elastic texture.'},
+    {num:25,id:'ricestarch',name:'Rice Starch',tag:'Smooth',hydration:'Cook 80-85°C',cls:'bulk',cold:false,ft:80,mc:75,ic:85,tx:88,base:1.2,mn:0.5,mx:2.0,notes:'0.5–2.0%. Very smooth texture.'},
+    {num:26,id:'arrowroot',name:'Arrowroot Starch',tag:'Clean label',hydration:'Cook 75-80°C',cls:'bulk',cold:false,ft:78,mc:70,ic:80,tx:82,base:1.5,mn:0.5,mx:2.5,notes:'0.5–2.5%. Gelatinises at lower temp.'},
+    {num:27,id:'potatostarch',name:'Potato Starch',tag:'High viscosity',hydration:'Cook 75-80°C',cls:'bulk',cold:false,ft:80,mc:72,ic:75,tx:85,base:1.2,mn:0.5,mx:2.0,notes:'0.5–2.0%. Common in European gelato.'},
+    {num:28,id:'modstarch',name:'Pregelatinized Starch',tag:'Cold swell',hydration:'Cold',cls:'bulk',cold:true,ft:80,mc:75,ic:78,tx:80,base:1.5,mn:0.5,mx:3.0,notes:'0.5–3.0%. Instant thickening.'},
+    {num:29,id:'salep',name:'Salep (Authentic)',tag:'Dondurma',hydration:'Heat 75-80°C',cls:'bulk',cold:false,ft:85,mc:90,ic:80,tx:95,base:1.2,mn:0.5,mx:1.5,notes:'0.5–1.5%. Requires CITES certification.'},
+    {num:30,id:'gumarabic',name:'Gum Arabic (E414)',tag:'Emulsifying',hydration:'Cold/Warm',cls:'bulk',cold:true,ft:65,mc:60,ic:50,tx:70,base:1.5,mn:0.5,mx:3.0,notes:'0.5–3.0%. Very low viscosity.'},
+    {num:31,id:'psyllium',name:'Psyllium Husk',tag:'Water binding',hydration:'Cold',cls:'bulk',cold:true,ft:84,mc:76,ic:70,tx:62,base:0.25,mn:0.10,mx:0.60,notes:'0.10–0.60%. Excellent for wand machines.'},
+    {num:32,id:'citrus',name:'Citrus Fiber',tag:'Clean label',hydration:'Cold',cls:'bulk',cold:true,ft:75,mc:80,ic:75,tx:75,base:0.30,mn:0.15,mx:0.60,notes:'0.15–0.60%. Natural water binder.'},
+    {num:33,id:'inulin',name:'Inulin / FOS',tag:'Bulking',hydration:'Heat 60-70°C',cls:'bulk',cold:false,ft:42,mc:52,ic:38,tx:70,base:2.0,mn:0.5,mx:5.0,notes:'0.5–5.0%. Fat replacer.'},
+    {num:34,id:'sorbitol',name:'Sorbitol (E420)',tag:'Humectant',hydration:'Cold',cls:'bulk',cold:true,ft:90,mc:60,ic:75,tx:85,base:3.0,mn:1.0,mx:5.0,notes:'1.0–5.0%. WARNING: >3% may cause laxative effect.'},
+    {num:35,id:'glycerol',name:'Glycerol (E422)',tag:'Softener',hydration:'Miscible',cls:'bulk',cold:true,ft:95,mc:50,ic:80,tx:90,base:1.5,mn:0.5,mx:3.0,notes:'0.5–3.0%. Extreme freezing point depression.'},
+    {num:36,id:'propylene',name:'Propylene Glycol (E1520)',tag:'Anti-freeze',hydration:'Miscible',cls:'bulk',cold:true,ft:85,mc:50,ic:70,tx:75,base:0.3,mn:0.2,mx:0.5,notes:'NOT PERMITTED IN EU ICE CREAM.'},
+    {num:37,id:'wpc',name:'Whey Protein Concentrate',tag:'Dairy protein',hydration:'Cold',cls:'protein',cold:true,ft:70,mc:85,ic:60,tx:85,base:1.5,mn:0.5,mx:4.0,notes:'0.5–4.0%. 80% protein.'},
+    {num:38,id:'wpi',name:'Whey Protein Isolate',tag:'High protein',hydration:'Cold',cls:'protein',cold:true,ft:72,mc:88,ic:62,tx:88,base:1.0,mn:0.3,mx:3.5,notes:'0.3–3.5%. 90% protein.'},
+    {num:39,id:'pea_protein',name:'Pea Protein',tag:'Plant protein',hydration:'Cold/Warm',cls:'protein',cold:true,ft:68,mc:82,ic:58,tx:82,base:1.8,mn:0.5,mx:4.5,notes:'0.5–4.5%. Neutral flavour.'},
+    {num:40,id:'soy_protein',name:'Soy Protein Isolate',tag:'Plant protein',hydration:'Cold/Warm',cls:'protein',cold:true,ft:70,mc:84,ic:60,tx:84,base:1.5,mn:0.5,mx:4.0,notes:'0.5–4.0%. Contains natural lecithin.'},
+    {num:41,id:'rice_protein',name:'Rice Protein',tag:'Hypoallergenic',hydration:'Cold/Warm',cls:'protein',cold:true,ft:65,mc:78,ic:55,tx:78,base:1.8,mn:0.5,mx:4.5,notes:'0.5–4.5%. Hypoallergenic.'},
+    {num:42,id:'mcc',name:'Microcrystalline Cellulose',tag:'Fat mimetic',hydration:'Cold',cls:'bulk',cold:true,ft:80,mc:85,ic:75,tx:85,base:0.25,mn:0.10,mx:0.50,notes:'0.10–0.50%. Creates creamy mouthfeel.'},
+    {num:43,id:'baobab',name:'Baobab Powder',tag:'Natural fiber',hydration:'Cold/Warm',cls:'bulk',cold:true,ft:70,mc:72,ic:68,tx:75,base:1.5,mn:0.5,mx:3.0,notes:'0.5–3.0%. Natural pectin source.'},
+    {num:44,id:'oatfiber',name:'Oat Fiber',tag:'Insoluble bulk',hydration:'Cold',cls:'bulk',cold:true,ft:72,mc:75,ic:68,tx:70,base:0.50,mn:0.20,mx:1.50,notes:'0.20–1.50%. Excellent for keto bases.'},
+    {num:45,id:'yeast_protein',name:'Yeast Protein',tag:'Savory protein',hydration:'Cold/Warm',cls:'protein',cold:true,ft:68,mc:80,ic:58,tx:80,base:1.2,mn:0.5,mx:3.5,notes:'0.5–3.5%. Complete amino acids.'}
+];
+
+// =============== COMPLETE EMULSIFIERS DATASET (17 Emulsifiers) ===============
+const EMUS = [
+    {num:1,id:'e471',name:'Mono & Diglycerides (E471)',tag:'Aeration',hlb:3.5,base:0.20,mn:0.10,mx:0.25,cold:false,notes:'0.10–0.25%. Requires heat. Low HLB - best for high fat.'},
+    {num:2,id:'ps80',name:'Polysorbate 80 (E433)',tag:'Fat-water interface',hlb:15,base:0.04,mn:0.02,mx:0.06,cold:true,notes:'0.02–0.06%. HLB 15. High HLB - best for low fat.'},
+    {num:3,id:'lactem',name:'LACTEM (E472b)',tag:'Cold aeration',hlb:8,base:0.15,mn:0.10,mx:0.25,cold:true,notes:'0.10–0.25%. HLB ~8. Medium HLB.'},
+    {num:4,id:'citrem',name:'CITREM (E472c)',tag:'Low-fat',hlb:12,base:0.15,mn:0.10,mx:0.20,cold:true,notes:'0.10–0.20%. HLB ~12. Good for low-fat.'},
+    {num:5,id:'acetem',name:'ACETEM (E472a)',tag:'Film-forming',hlb:4,base:0.10,mn:0.05,mx:0.15,cold:false,notes:'0.05–0.15%. Forms film on ice crystals.'},
+    {num:6,id:'e475',name:'Polyglycerol Esters (E475)',tag:'Aeration',hlb:8,base:0.15,mn:0.05,mx:0.30,cold:false,notes:'0.05–0.30%. Requires heat.'},
+    {num:7,id:'pgme',name:'PGME (E477)',tag:'High aeration',hlb:9,base:0.15,mn:0.05,mx:0.30,cold:false,notes:'0.05–0.30%. For high-overrun.'},
+    {num:8,id:'datem',name:'DATEM (E472e)',tag:'Premium aeration',hlb:10,base:0.15,mn:0.08,mx:0.25,cold:false,notes:'0.08–0.25%. HLB ~10.'},
+    {num:9,id:'ssl',name:'Sodium Stearoyl Lactylate (E481)',tag:'Fat softener',hlb:11,base:0.15,mn:0.05,mx:0.25,cold:false,notes:'0.05–0.25%. HLB ~11.'},
+    {num:10,id:'gms',name:'GMS – Distilled Monoglyceride',tag:'Anti-shrinkage',hlb:3.8,base:0.25,mn:0.10,mx:0.35,cold:false,notes:'0.10–0.35%. Requires heat.'},
+    {num:11,id:'lecithin',name:'Sunflower Lecithin (E322)',tag:'Clean label',hlb:7,base:0.25,mn:0.10,mx:0.50,cold:true,notes:'0.10–0.50%. HLB ~7. Natural.'},
+    {num:12,id:'quillaja',name:'Quillaja Extract (E999)',tag:'Vegan foam',hlb:14,base:0.02,mn:0.01,mx:0.03,cold:true,notes:'0.01–0.03%. HLB ~14. Excellent vegan foaming.'},
+    {num:13,id:'caseinate',name:'Sodium Caseinate',tag:'Dairy emulsifier',hlb:12,base:1.0,mn:0.5,mx:2.0,cold:true,notes:'0.5–2.0%. >1.5% may reduce overrun.'},
+    {num:14,id:'eggyolk',name:'Egg Yolk',tag:'Custard',hlb:9,base:2.0,mn:1.0,mx:4.0,cold:false,notes:'1.0–4.0%. Must be cooked.'},
+    {num:15,id:'sucrose',name:'Sucrose Esters (E473)',tag:'Fine aeration',hlb:15,base:0.10,mn:0.05,mx:0.15,cold:false,notes:'0.05–0.15%. HLB up to 15.'},
+    {num:16,id:'cyclo',name:'Cyclodextrins (E459)',tag:'Complexing',hlb:13,base:0.20,mn:0.10,mx:0.30,cold:true,notes:'0.10–0.30%. Masks off-flavors.'},
+    {num:17,id:'e470a',name:'Potassium Salts Fatty Acids',tag:'Alkaline',hlb:8,base:0.10,mn:0.05,mx:0.20,cold:false,notes:'0.05–0.20%. Alkaline emulsifier.'}
+];
+
+let calcMode = 'Manual';
+let currentExportData = null;
+let synergyBonusTotal = 1.0;
+let synergyMessages = [];
+
+const MSNF_PROTEIN_RATIO = 0.36;
+const MSNF_LACTOSE_RATIO = 0.545;
+const SALT_PAC_FACTOR = 586;
+const MSNF_FPD_FACTOR = -2.37;
+const LACTOSE_PAC_FACTOR = 10;
+const LACTOSE_POD_FACTOR = 1.6077;
+
+// =============== SUGAR BLEND FUNCTIONS (with Sweetness) ===============
+let sugarItemsData = [];
+
+function initializeSugarData() {
+    if (sugarItemsData.length === 0) {
+        sugarItemsData = [{ name: "", quantity: 0, sweetness: "", pac: "", pod: "" }];
+    }
+    renderSugarItems();
+}
+
+function renderSugarItems() {
+    const container = document.getElementById('sugarItemsList');
+    if (!container) return;
+    let html = '';
+    for (let i = 0; i < sugarItemsData.length; i++) {
+        const item = sugarItemsData[i];
+        html += `
+            <div class="sugar-item" data-index="${i}">
+                <div class="sugar-row-top">
+                    <select class="sugar-select" data-index="${i}" onchange="updateSugarRow(this)">
+                        <option value="">Select Sugar...</option>
+                        ${SUGAR_DB.map(s => `<option value="${s.name}" data-pac="${s.pac}" data-pod="${s.pod}" data-sweetness="${s.sweetness}" ${item.name === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    </select>
+                    <input type="number" class="sugar-quantity" data-index="${i}" value="${item.quantity || 0}" min="0" step="10" placeholder="Qty (g)" oninput="updateSugarQuantity(this)">
+                    <input type="text" class="sugar-percent" data-index="${i}" readonly placeholder="%" style="background:#eee;">
+                </div>
+                <div class="sugar-row-bottom">
+                    <input type="text" class="sugar-pac" data-index="${i}" readonly placeholder="PAC" style="background:#eee;" value="${item.pac || ''}">
+                    <input type="text" class="sugar-pod" data-index="${i}" readonly placeholder="POD" style="background:#eee;" value="${item.pod || ''}">
+                    <input type="text" class="sugar-sweetness" data-index="${i}" readonly placeholder="Sweetness" style="background:#eee;" value="${item.sweetness || ''}">
+                    <button class="remove-sugar-btn" onclick="removeSugarItem(${i})">✖</button>
+                </div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+    updateSugarCalculations();
+}
+
+function updateSugarRow(selectElement) {
+    const index = parseInt(selectElement.getAttribute('data-index'));
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const name = selectElement.value;
+    const pac = selectedOption.getAttribute('data-pac');
+    const pod = selectedOption.getAttribute('data-pod');
+    const sweetness = selectedOption.getAttribute('data-sweetness');
+    
+    if (name) {
+        sugarItemsData[index] = {
+            name: name,
+            quantity: sugarItemsData[index]?.quantity || 0,
+            pac: pac,
+            pod: pod,
+            sweetness: sweetness
+        };
+    } else {
+        sugarItemsData[index] = { name: "", quantity: 0, pac: "", pod: "", sweetness: "" };
+    }
+    
+    const pacInput = document.querySelector(`.sugar-pac[data-index="${index}"]`);
+    const podInput = document.querySelector(`.sugar-pod[data-index="${index}"]`);
+    const sweetnessInput = document.querySelector(`.sugar-sweetness[data-index="${index}"]`);
+    if (pacInput) pacInput.value = pac || '';
+    if (podInput) podInput.value = pod || '';
+    if (sweetnessInput) sweetnessInput.value = sweetness || '';
+    
+    updateSugarCalculations();
+}
+
+function updateSugarQuantity(quantityInput) {
+    const index = parseInt(quantityInput.getAttribute('data-index'));
+    const quantity = parseFloat(quantityInput.value) || 0;
+    if (sugarItemsData[index]) {
+        sugarItemsData[index].quantity = quantity;
+    }
+    updateSugarCalculations();
+}
+
+function updateSugarCalculations() {
+    const totalMix = parseFloat(document.getElementById('totalMix').value) || 1000;
+    let totalSweetnessValue = 0;
+    let weightedPAC = 0;
+    let weightedPOD = 0;
+    
+    for (let i = 0; i < sugarItemsData.length; i++) {
+        const item = sugarItemsData[i];
+        const quantity = item.quantity || 0;
+        const pac = parseFloat(item.pac) || 0;
+        const pod = parseFloat(item.pod) || 0;
+        const sweetness = parseFloat(item.sweetness) || 0;
+        
+        const sweetnessValue = quantity * (sweetness / 100);
+        totalSweetnessValue += sweetnessValue;
+        
+        if (quantity > 0 && pac > 0) {
+            weightedPAC += (pac * quantity / totalMix) * 10;
+            weightedPOD += (pod * quantity / totalMix) * 10;
+        }
+        
+        const percent = totalMix > 0 ? (sweetnessValue / totalMix) * 100 : 0;
+        const percentInput = document.querySelector(`.sugar-percent[data-index="${i}"]`);
+        if (percentInput) percentInput.value = percent.toFixed(2);
+    }
+    
+    document.getElementById('totalSweetnessValue').innerHTML = totalSweetnessValue.toFixed(1);
+    const sugarPercent = totalMix > 0 ? (totalSweetnessValue / totalMix) * 100 : 0;
+    document.getElementById('totalSugarPercent').innerHTML = sugarPercent.toFixed(2) + '%';
+    
+    const msnf = parseFloat(document.getElementById('msnf').value) || 0;
+    const lactosePct = msnf * MSNF_LACTOSE_RATIO;
+    const lactosePAC = lactosePct * LACTOSE_PAC_FACTOR;
+    const lactosePOD = lactosePct * LACTOSE_POD_FACTOR;
+    
+    const finalPAC = weightedPAC + lactosePAC;
+    const finalPOD = weightedPOD + lactosePOD;
+    
+    document.getElementById('weightedPAC').innerHTML = finalPAC.toFixed(2);
+    document.getElementById('weightedPOD').innerHTML = finalPOD.toFixed(2);
+    document.getElementById('calculatedPAC').value = finalPAC.toFixed(2);
+    document.getElementById('calculatedPOD').value = finalPOD.toFixed(2);
+    
+    return { weightedPAC: finalPAC, weightedPOD: finalPOD, sugarPercent, totalSweetnessValue, lactosePAC, lactosePOD };
+}
+
+function addSugarItem() {
+    sugarItemsData.push({ name: "", quantity: 0, pac: "", pod: "", sweetness: "" });
+    renderSugarItems();
+    updateSugarCalculations();
+    updateAllCalculations();
+}
+
+function removeSugarItem(index) {
+    if (sugarItemsData.length <= 1) {
+        showToast("At least one sugar component required", true);
+        return;
+    }
+    sugarItemsData.splice(index, 1);
+    renderSugarItems();
+    updateSugarCalculations();
+    updateAllCalculations();
+}
+
+// =============== MASS BALANCE WITH SUGAR INTEGRATION ===============
+function getSugarPercent() {
+    return parseFloat(document.getElementById('totalSugarPercent').innerHTML) || 0;
+}
+
+function calculateMassBalance() {
+    const water = parseFloat(document.getElementById('water').value) || 0;
+    const fat = parseFloat(document.getElementById('fat').value) || 0;
+    const msnf = parseFloat(document.getElementById('msnf').value) || 0;
+    const sugar = getSugarPercent();
+    const protein = parseFloat(document.getElementById('protein').value) || 0;
+    const alcohol = parseFloat(document.getElementById('alcohol').value) || 0;
+    const otherSolids = parseFloat(document.getElementById('otherSolids').value) || 0;
+    const total = water + fat + msnf + sugar + protein + alcohol + otherSolids;
+    const imbalance = total - 100;
+    return { total, imbalance };
+}
+
+function validateMassBalance() {
+    const { total, imbalance } = calculateMassBalance();
+    const warningDiv = document.getElementById('massBalanceWarning');
+    const solidsWarningDiv = document.getElementById('solidsWarning');
+    const proteinData = calculateProteinBreakdown();
+    const totalSolids = 100 - (parseFloat(document.getElementById('water').value) || 0);
+    
+    if (Math.abs(imbalance) > 0.2) {
+        warningDiv.style.display = 'block';
+        warningDiv.className = 'composition-error';
+        if (imbalance > 0) {
+            warningDiv.innerHTML = `⚠️ Mass Balance: ${total.toFixed(1)}% (${imbalance.toFixed(1)}% over 100%). Reduce "Other Solids" by ${imbalance.toFixed(1)}% to balance.`;
+        } else {
+            warningDiv.innerHTML = `⚠️ Mass Balance: ${total.toFixed(1)}% (${Math.abs(imbalance).toFixed(1)}% under 100%). Increase "Other Solids" by ${Math.abs(imbalance).toFixed(1)}% to balance.`;
+        }
+        return false;
+    } else {
+        warningDiv.style.display = 'block';
+        warningDiv.className = 'composition-success';
+        warningDiv.innerHTML = `✅ Mass Balance: ${total.toFixed(1)}% | Total Solids: ${totalSolids.toFixed(1)}% | Protein: ${proteinData.totalProtein.toFixed(2)}% | Lactose: ${proteinData.lactoseFromMSNF.toFixed(2)}% | Sugar Sweetness: ${getSugarPercent().toFixed(2)}%`;
+        if (totalSolids > 40) {
+            solidsWarningDiv.style.display = 'block';
+            solidsWarningDiv.innerHTML = `⚠️ Solids-to-Water Alert: Total Solids at ${totalSolids.toFixed(1)}% exceeds 40%. May result in "soggy" or "sticky" texture.`;
+        } else {
+            solidsWarningDiv.style.display = 'none';
+        }
+        return true;
+    }
+}
+
+// =============== PROTEIN BREAKDOWN ===============
+function calculateProteinBreakdown() {
+    const msnf = parseFloat(document.getElementById('msnf').value) || 0;
+    const additionalProtein = parseFloat(document.getElementById('protein').value) || 0;
+    const proteinFromMSNF = msnf * MSNF_PROTEIN_RATIO;
+    const totalProtein = proteinFromMSNF + additionalProtein;
+    const lactoseFromMSNF = msnf * MSNF_LACTOSE_RATIO;
+    return { proteinFromMSNF, additionalProtein, totalProtein, lactoseFromMSNF };
+}
+
+function updateNutritionalProfile() {
+    const proteinData = calculateProteinBreakdown();
+    document.getElementById('totalProteinDisplay').value = proteinData.totalProtein.toFixed(2);
+    document.getElementById('lactoseDisplay').value = proteinData.lactoseFromMSNF.toFixed(2);
+    const sugar = getSugarPercent();
+    const totalSugars = sugar + proteinData.lactoseFromMSNF;
+    document.getElementById('totalSugars').value = totalSugars.toFixed(2);
+    const totalSolids = 100 - (parseFloat(document.getElementById('water').value) || 0);
+    document.getElementById('totalSolids').value = totalSolids.toFixed(1);
+    const totalCarbs = totalSolids - (parseFloat(document.getElementById('fat').value) || 0) - proteinData.totalProtein;
+    document.getElementById('totalCarbs').value = Math.max(0, totalCarbs).toFixed(2);
+    return proteinData;
+}
+
+// =============== FREEZING POINT CALCULATIONS ===============
+function calculateFreezingPointPolynomial(normalizedPAC) {
+    const pac4 = Math.pow(normalizedPAC, 4);
+    const pac3 = Math.pow(normalizedPAC, 3);
+    const pac2 = Math.pow(normalizedPAC, 2);
+    return -((0.0000000018 * pac4) - (0.0000015486 * pac3) + (0.0004066439 * pac2) + (0.0429570733 * normalizedPAC) + 0.1564927407);
+}
+
+function calculateFinalPAC() {
+    const pacValue = parseFloat(document.getElementById('weightedPAC').innerHTML) || 0;
+    const salt = parseFloat(document.getElementById('salt').value) || 0;
+    const hardeningFactor = parseFloat(document.getElementById('hardeningFactorInput').value) || 0;
+    const saltPAC = (salt * SALT_PAC_FACTOR) / 10;
+    return (pacValue - hardeningFactor + saltPAC) / 10;
+}
+
+function calculateFreezingParameters() {
+    const water = parseFloat(document.getElementById('water').value) || 0;
+    const alcohol = parseFloat(document.getElementById('alcohol').value) || 0;
+    const msnf = parseFloat(document.getElementById('msnf').value) || 0;
+    const otherSolids = parseFloat(document.getElementById('otherSolids').value) || 0;
+    const fat = parseFloat(document.getElementById('fat').value) || 0;
+    const sugar = getSugarPercent();
+    const protein = parseFloat(document.getElementById('protein').value) || 0;
+    
+    const totalSolids = fat + msnf + sugar + protein + otherSolids;
+    const freeWaterZero = 100 - totalSolids - alcohol;
+    if (freeWaterZero > 0) document.getElementById('freeWaterZero').value = freeWaterZero.toFixed(2);
+    
+    const finalPAC = calculateFinalPAC();
+    let normalizedPAC = freeWaterZero > 0 ? (finalPAC / freeWaterZero) * 100 : 0;
+    const fpdSugar = calculateFreezingPointPolynomial(normalizedPAC);
+    let fpdMSNF = freeWaterZero > 0 ? msnf * MSNF_FPD_FACTOR / freeWaterZero : 0;
+    const initialFP = fpdSugar + fpdMSNF;
+    document.getElementById('initialFreezingPoint').value = initialFP.toFixed(2);
+    
+    const targetFrozenWater = parseFloat(document.getElementById('targetFrozenWater').value) || 75;
+    const freeWaterAtTarget = freeWaterZero * (100 - targetFrozenWater) / 100;
+    const iceAtTarget = freeWaterZero - freeWaterAtTarget;
+    document.getElementById('iceAtServing').value = iceAtTarget.toFixed(2);
+    
+    let normalizedPAC1 = freeWaterAtTarget > 0 ? (finalPAC / freeWaterAtTarget) * 100 : 0;
+    const fpdSugarTarget = calculateFreezingPointPolynomial(normalizedPAC1);
+    let fpdMSNFTarget = freeWaterAtTarget > 0 ? msnf * MSNF_FPD_FACTOR / freeWaterAtTarget : 0;
+    const servingTemp = fpdSugarTarget + fpdMSNFTarget;
+    document.getElementById('servingTemp').value = servingTemp.toFixed(2);
+    
+    const podValue = parseFloat(document.getElementById('weightedPOD').innerHTML) || 0;
+    const hardnessFactor = podValue * (totalSolids / 100);
+    document.getElementById('hardnessFactorDisplay').value = hardnessFactor.toFixed(1);
+    
+    return { initialFP, servingTemp, freeWaterZero, iceAtTarget, totalSolids };
+}
+
+// =============== STABILISER CALCULATION ===============
+function calculateStabiliserDosages() {
+    const tm = parseFloat(document.getElementById('totalMix').value) || 1000;
+    const fat = parseFloat(document.getElementById('fat').value) || 10;
+    const water = parseFloat(document.getElementById('water').value) || 62;
+    const ovr = parseFloat(document.getElementById('overrun').value) || 80;
+    const stT = parseFloat(document.getElementById('storageT').value) || -11;
+    const shL = parseFloat(document.getElementById('shelfLife').value) || 3;
+    const mach = document.getElementById('machine').value;
+    const mode = document.getElementById('mode').value;
+    const proteinData = calculateProteinBreakdown();
+    
+    const selectedStabs = STABS.filter(s => document.getElementById('s_' + s.id)?.classList.contains('on'));
+    const gums = selectedStabs.filter(s => s.cls === 'gum');
+    const bulks = selectedStabs.filter(s => s.cls === 'bulk');
+    const proteins = selectedStabs.filter(s => s.cls === 'protein');
+    
+    const shelfMulti = shL >= 12 ? 1.12 : shL >= 6 ? 1.07 : 1.0;
+    const tempMulti = stT <= -20 ? 1.08 : stT <= -15 ? 1.04 : 1.0;
+    let baseStabTarget = fat < 1 ? 0.30 : fat <= 3 ? 0.26 : fat <= 8 ? 0.22 : fat <= 14 ? 0.18 : 0.13;
+    baseStabTarget = baseStabTarget * shelfMulti * tempMulti;
+    
+    const waterFactor = 1 + (water - 62) / 100;
+    const msnfDep = 1 - ((parseFloat(document.getElementById('msnf').value) - 11) / 120);
+    let proteinMod = 1 - ((proteinData.totalProtein - 3.5) * 0.015);
+    proteinMod = Math.min(1.0, Math.max(0.85, proteinMod));
+    const compMulti = waterFactor * msnfDep * proteinMod;
+    const oF = 1 + (80 - ovr) / 250;
+    const mF = { batch: 1.0, continuous: 0.95, wand: 1.07, ninja: 1.07, ninjadeluxe: 1.07, pacojet: 1.07, home: 1.05, nochurn: 1.11, softserve: 1.05, popsicle: 1.15 }[mach] || 1.0;
+    const sF = mode === 'export' ? 1.12 : shL >= 12 ? 1.08 : shL >= 6 ? 1.04 : 1.0;
+    const tF = stT >= -14 ? 1.08 : stT >= -18 ? 1.0 : 0.96;
+    const SDI = compMulti * oF * mF * sF * tF;
+    
+    let dynamicStabTarget = baseStabTarget * SDI;
+    const bulkTotal = bulks.reduce((a, r) => a + r.base, 0);
+    const bulkReduction = Math.min(0.15, bulkTotal * 0.03);
+    dynamicStabTarget = dynamicStabTarget * (1 - bulkReduction);
+    dynamicStabTarget = Math.min(0.40, Math.max(0.08, dynamicStabTarget));
+    
+    const selectedIds = selectedStabs.map(s => s.id);
+    synergyBonusTotal = 1.0;
+    synergyMessages = [];
+    if (selectedIds.includes('xanthan') && selectedIds.includes('guar')) { synergyBonusTotal *= 1.12; synergyMessages.push('Xanthan + Guar: +12%'); }
+    if (selectedIds.includes('lgb') && (selectedIds.includes('kappa') || selectedIds.includes('lambda'))) { synergyBonusTotal *= 1.18; synergyMessages.push('LBG + Carrageenan: +18%'); }
+    if (selectedIds.includes('xanthan') && selectedIds.includes('konjac')) { synergyBonusTotal *= 1.25; synergyMessages.push('Xanthan + Konjac: +25%'); }
+    if (selectedIds.length >= 3) { synergyBonusTotal *= 1.08; synergyMessages.push('Multiple stabilisers: +8%'); }
+    dynamicStabTarget = dynamicStabTarget * synergyBonusTotal;
+    
+    let rawGumTotal = 0;
+    const rawGumRes = gums.map(s => { rawGumTotal += s.base; return { ...s, rawBase: s.base }; });
+    let gumScale = rawGumTotal > 0 ? (dynamicStabTarget / rawGumTotal) : 1;
+    const gumRes = rawGumRes.map(s => { let p = s.rawBase * gumScale; p = Math.max(s.mn, Math.min(s.mx, p)); return { ...s, ap: p, gr: p / 100 * tm }; });
+    const bulkResAdj = bulks.map(s => { let p = s.base; p = Math.max(s.mn, Math.min(s.mx, p)); return { ...s, ap: p, gr: p / 100 * tm }; });
+    const proteinResAdj = proteins.map(s => { let p = s.base; p = Math.max(s.mn, Math.min(s.mx, p)); return { ...s, ap: p, gr: p / 100 * tm }; });
+    const sRes = [...gumRes, ...bulkResAdj, ...proteinResAdj];
+    const totGumG = gumRes.reduce((a, r) => a + r.gr, 0);
+    const totBulkG = bulkResAdj.reduce((a, r) => a + r.gr, 0);
+    const totProteinG = proteinResAdj.reduce((a, r) => a + r.gr, 0);
+    return { sRes, totGumG, totBulkG, totProteinG, synergyMessages };
+}
+
+// =============== EMULSIFIER CALCULATION ===============
+function calculateEmulsifierDosages() {
+    const tm = parseFloat(document.getElementById('totalMix').value) || 1000;
+    const fat = parseFloat(document.getElementById('fat').value) || 10;
+    const ovr = parseFloat(document.getElementById('overrun').value) || 80;
+    const mach = document.getElementById('machine').value;
+    const ftyp = document.getElementById('fatType').value;
+    const selectedEmus = EMUS.filter(e => document.getElementById('e_' + e.id)?.classList.contains('emu-on'));
+    const mF = { batch: 1.0, continuous: 0.95, wand: 1.07, ninja: 1.07, ninjadeluxe: 1.07, pacojet: 1.07, home: 1.05, nochurn: 1.11, softserve: 1.05, popsicle: 1.15 }[mach] || 1.0;
+    let baseEmuTarget = fat < 1 ? 0.0 : fat <= 8 ? 0.15 : 0.20;
+    const overrunFactor = 1 + (ovr - 80) / 300;
+    let dynamicEmuTarget = ftyp === 'none' ? 0.05 : baseEmuTarget * (fat / 10) * mF * overrunFactor;
+    dynamicEmuTarget = Math.max(0, Math.min(0.28, dynamicEmuTarget));
+    let rawTotalEp = 0;
+    const rawERes = selectedEmus.map(e => { rawTotalEp += e.base; return { ...e, rawBase: e.base }; });
+    let emuScale = rawTotalEp > 0 ? (dynamicEmuTarget / rawTotalEp) : 1;
+    const eRes = rawERes.map(e => { let p = e.rawBase * emuScale; p = Math.max(0, Math.min(e.mx, p)); return { ...e, ap: p, gr: p / 100 * tm }; });
+    return { eRes };
+}
+
+// =============== SCORES ===============
+function calculateScores(sRes) {
+    const scores = { ft: 0, mc: 0, ic: 0, tx: 0 };
+    if (!sRes.length) return scores;
+    const tot = sRes.reduce((a, r) => a + r.ap, 0) || 1;
+    scores.ft = Math.min(99, Math.round(sRes.reduce((a, r) => a + (r.ft * r.ap), 0) / tot));
+    scores.mc = Math.min(99, Math.round(sRes.reduce((a, r) => a + (r.mc * r.ap), 0) / tot));
+    scores.ic = Math.min(99, Math.round(sRes.reduce((a, r) => a + (r.ic * r.ap), 0) / tot));
+    scores.tx = Math.min(99, Math.round(sRes.reduce((a, r) => a + (r.tx * r.ap), 0) / tot));
+    if (synergyBonusTotal > 1.0) { scores.ft = Math.min(99, Math.round(scores.ft * synergyBonusTotal)); scores.ic = Math.min(99, Math.round(scores.ic * synergyBonusTotal)); }
+    return scores;
+}
+
+// =============== MAIN CALCULATION ===============
+function updateAllCalculations() {
+    updateSugarCalculations();
+    updateNutritionalProfile();
+    calculateFreezingParameters();
+    validateMassBalance();
+    validateStabilizerCombinations();
+    validateEmulsifierCombinations();
+    calculate();
+}
+
+function validateStabilizerCombinations() {
+    const process = document.getElementById('process').value;
+    const fatType = document.getElementById('fatType').value;
+    const selectedStabs = STABS.filter(s => document.getElementById('s_' + s.id)?.classList.contains('on'));
+    const warnings = [];
+    selectedStabs.forEach(stab => {
+        if (process === 'cold' && !stab.cold) warnings.push(`❌ ${stab.name} requires heat (${stab.hydration})`);
+        if (stab.id === 'kappa' && fatType === 'none') warnings.push(`❌ ${stab.name} is INEFFECTIVE in sorbet`);
+    });
+    const msgDiv = document.getElementById('stabValidationMsg');
+    if (warnings.length > 0) { msgDiv.style.display = 'block'; msgDiv.innerHTML = warnings.join('<br>'); }
+    else msgDiv.style.display = 'none';
+}
+
+function validateEmulsifierCombinations() {
+    const fat = parseFloat(document.getElementById('fat').value) || 10;
+    const selectedEmus = EMUS.filter(e => document.getElementById('e_' + e.id)?.classList.contains('emu-on'));
+    let totalHLB = 0, totalDose = 0;
+    selectedEmus.forEach(e => { totalHLB += e.hlb * e.base; totalDose += e.base; });
+    let avgHLB = totalDose > 0 ? totalHLB / totalDose : 0;
+    let hlbRecommendation = fat < 6 ? 'Recommended HLB: 10-14' : fat < 12 ? 'Recommended HLB: 7-10' : 'Recommended HLB: 3-7';
+    const hlbDiv = document.getElementById('emuHLBWarning');
+    if (selectedEmus.length > 0) { hlbDiv.style.display = 'block'; hlbDiv.innerHTML = `📊 Avg HLB: ${avgHLB.toFixed(1)} | ${hlbRecommendation}`; }
+    else hlbDiv.style.display = 'none';
+}
+
+function calculate() {
+    if (!validateMassBalance()) { document.getElementById('resultsArea').innerHTML = '<div class="composition-error">⚠️ Mass balance error. Adjust "Other Solids" to reach 100%.</div>'; return; }
+    
+    const fpData = calculateFreezingParameters();
+    const proteinData = calculateProteinBreakdown();
+    const stabiliserData = calculateStabiliserDosages();
+    const emulsifierData = calculateEmulsifierDosages();
+    const sRes = stabiliserData.sRes;
+    const eRes = emulsifierData.eRes;
+    const scores = calculateScores(sRes);
+    
+    const ptype = parseFloat(document.getElementById('fat').value) < 1 ? 'Sorbet' : 
+                  parseFloat(document.getElementById('fat').value) <= 3 ? 'Sherbet' : 
+                  parseFloat(document.getElementById('fat').value) <= 8 ? 'Gelato' : 'Ice Cream';
+    const tc = { Sorbet: 'type-sorbet', Sherbet: 'type-sorbet', Gelato: 'type-gelato', 'Ice Cream': 'type-icecream' }[ptype] || 'type-icecream';
+    const mxS = Math.max(...sRes.map(r => r.gr), 0.001);
+    const modeBadge = calcMode === 'Auto' ? '<span class="type-badge" style="background:var(--gold);color:var(--chocolate)">✨ Auto Formulated</span>' : '<span class="type-badge" style="background:var(--steel);color:var(--cream)">🔬 Manual</span>';
+    
+    currentExportData = {
+        tm: parseFloat(document.getElementById('totalMix').value),
+        fat: parseFloat(document.getElementById('fat').value),
+        fp: fpData.initialFP,
+        ts: fpData.totalSolids,
+        tp: proteinData.totalProtein,
+        servingTemp: fpData.servingTemp,
+        stabRes: sRes,
+        eRes: eRes
+    };
+    
+    document.getElementById('resultsArea').innerHTML = `<div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span class="type-badge ${tc}">${ptype}</span>${modeBadge}</div>
+        ${stabiliserData.synergyMessages.length ? `<div class="info-band">✨ Synergy: ${stabiliserData.synergyMessages.join(' • ')}</div>` : ''}
+        <div class="sec-sub">Thermal Parameters</div>
+        <div class="results-grid-4">
+            <div class="sc"><div class="val">${fpData.initialFP.toFixed(2)}°C</div><div class="lbl">Initial Freezing Point</div></div>
+            <div class="sc"><div class="val">${fpData.freeWaterZero.toFixed(2)}%</div><div class="lbl">Free Water (0% ice)</div></div>
+            <div class="sc"><div class="val">${fpData.servingTemp.toFixed(2)}°C</div><div class="lbl">Serving Temp @ ${document.getElementById('targetFrozenWater').value}% Frozen Water</div></div>
+            <div class="sc"><div class="val">${fpData.iceAtTarget.toFixed(2)}%</div><div class="lbl">Ice @ Serving Temp</div></div>
+        </div>
+        <div class="sec-sub">Nutritional Profile</div>
+        <div class="results-grid-4-nutrition">
+            <div class="sc"><div class="val">${proteinData.totalProtein.toFixed(2)}%</div><div class="lbl">Total Protein</div></div>
+            <div class="sc"><div class="val">${proteinData.lactoseFromMSNF.toFixed(2)}%</div><div class="lbl">Lactose</div></div>
+            <div class="sc"><div class="val">${document.getElementById('totalSugars').value}%</div><div class="lbl">Total Sugars</div></div>
+            <div class="sc"><div class="val">${document.getElementById('totalCarbs').value}%</div><div class="lbl">Total Carbs</div></div>
+        </div>
+        <div class="sec-sub">Additives Usage</div>
+        <div class="results-grid-3">
+            <div class="sc"><div class="val">${(stabiliserData.totGumG + stabiliserData.totBulkG + stabiliserData.totProteinG).toFixed(2)}g</div><div class="lbl">Total Additives</div></div>
+            <div class="sc"><div class="val">${stabiliserData.totGumG.toFixed(2)}g</div><div class="lbl">Gums</div></div>
+            <div class="sc"><div class="val">${stabiliserData.totProteinG.toFixed(2)}g</div><div class="lbl">Added Proteins</div></div>
+        </div>
+        ${sRes.length ? `<div class="rtitle">Selected Stabilisers & Proteins (${sRes.length})</div>` + sRes.map(r => `<div class="stab-row"><div><div class="rn">${r.name}</div><div class="rs">${r.hydration || ''}</div></div><div class="rp">${r.ap.toFixed(4)}%</div><div class="rg">${r.gr.toFixed(2)}g</div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100, Math.round(r.gr / mxS * 100))}%"></div></div></div>`).join('') : ''}
+        ${eRes.filter(e => e.ap > 0).length ? `<hr class="divider"><div class="rtitle">Selected Emulsifiers (${eRes.filter(e => e.ap > 0).length})</div>` + eRes.filter(e => e.ap > 0).map(r => `<div class="emu-row"><div><div class="rn">${r.name}</div><div class="rs">HLB: ${r.hlb}</div></div><div class="ep">${r.ap.toFixed(4)}%</div><div class="eg">${r.gr.toFixed(2)}g</div></div>`).join('') : ''}
+        <hr class="divider"><div class="sec-sub">Characteristic Scores</div>
+        <div class="char-grid">
+            <div class="char-item"><div class="clabel">Freeze–Thaw</div><div class="cbar"><div class="cfill" style="width:${scores.ft}%;background:#2D6B55"></div></div><div class="cval">${scores.ft}/100</div></div>
+            <div class="char-item"><div class="clabel">Meltdown Ctrl</div><div class="cbar"><div class="cfill" style="width:${scores.mc}%;background:#C8874A"></div></div><div class="cval">${scores.mc}/100</div></div>
+            <div class="char-item"><div class="clabel">Crystal Ctrl</div><div class="cbar"><div class="cfill" style="width:${scores.ic}%;background:#5B9BD5"></div></div><div class="cval">${scores.ic}/100</div></div>
+            <div class="char-item"><div class="clabel">Texture</div><div class="cbar"><div class="cfill" style="width:${scores.tx}%;background:#7B3F6E"></div></div><div class="cval">${scores.tx}/100</div></div>
+        </div>
+        <div class="sec-sub">Technologist Notes</div>
+        <div class="notes-box"><ul class="nlist">${[...sRes, ...eRes.filter(e => e.ap > 0)].slice(0, 15).map(r => `<li><strong>${r.name}:</strong> ${r.notes}</li>`).join('')}</ul></div>
+    </div>`;
+}
+
+// =============== UI FUNCTIONS ===============
+function updateMachineBatch() {
+    const m = document.getElementById('machine').value;
+    const def = { wand: 236, ninja: 473, ninjadeluxe: 710, pacojet: 800, home: 650, batch: 1000, continuous: 1000, softserve: 2000, popsicle: 1000, nochurn: 1000 };
+    if (def[m]) document.getElementById('totalMix').value = def[m];
+    updateSugarCalculations();
+    updateAllCalculations();
+}
+
+function updateBatchSize() {
+    updateSugarCalculations();
+    updateAllCalculations();
+}
+
+function updateProcessState() {
+    const proc = document.getElementById('process').value;
+    STABS.forEach(s => {
+        const el = document.getElementById('s_' + s.id);
+        if (el) {
+            if (proc === 'cold' && !s.cold) el.classList.add('disabled-item');
+            else el.classList.remove('disabled-item');
+        }
+    });
+    EMUS.forEach(e => {
+        const el = document.getElementById('e_' + e.id);
+        if (el) {
+            if (proc === 'cold' && !e.cold) el.classList.add('disabled-item');
+            else el.classList.remove('disabled-item');
+        }
+    });
+    updateAllCalculations();
+}
+
+function buildUI() {
+    initializeSugarData();
+    
+    const sg = document.getElementById('stabGrid');
+    sg.innerHTML = '';
+    STABS.forEach(s => {
+        const d = document.createElement('div');
+        d.className = 'sel-item';
+        d.id = 's_' + s.id;
+        d.onclick = () => {
+            if (document.getElementById('process').value === 'cold' && !s.cold) { showToast(`🔥 ${s.name} requires heat`, true); return; }
+            d.classList.toggle('on');
+            updateAllCalculations();
+        };
+        d.innerHTML = `<div class="iname"><span class="item-number">${s.num}</span>${s.name} <span class="sym">${s.cold ? '❄️' : '🔥'}</span></div><div class="itag">${s.tag}${s.cls === 'protein' ? ' • Protein' : ''}</div>`;
+        sg.appendChild(d);
+    });
+    
+    const eg = document.getElementById('emuGrid');
+    eg.innerHTML = '';
+    EMUS.forEach(e => {
+        const d = document.createElement('div');
+        d.className = 'sel-item';
+        d.id = 'e_' + e.id;
+        d.onclick = () => {
+            if (document.getElementById('process').value === 'cold' && !e.cold) { showToast(`🔥 ${e.name} requires heat`, true); return; }
+            d.classList.toggle('emu-on');
+            updateAllCalculations();
+        };
+        d.innerHTML = `<div class="iname"><span class="item-number">${e.num}</span>${e.name} <span class="sym">${e.cold ? '❄️' : '🔥'}</span></div><div class="itag">${e.tag} HLB:${e.hlb}</div>`;
+        eg.appendChild(d);
+    });
+}
+
+function sNone() { STABS.forEach(s => { const el = document.getElementById('s_' + s.id); if (el) el.classList.remove('on'); }); updateAllCalculations(); }
+function eNone() { EMUS.forEach(e => { const el = document.getElementById('e_' + e.id); if (el) el.classList.remove('emu-on'); }); updateAllCalculations(); }
+
+function preset(p) {
+    STABS.forEach(s => { const el = document.getElementById('s_' + s.id); if (el) el.classList.remove('on'); });
+    const map = { 
+        premium: ['lgb', 'guar', 'lambda', 'iota'], 
+        sorbet: ['xanthan', 'cmc', 'guar', 'iota'], 
+        gelato: ['cornstarch', 'guar', 'lambda', 'tara'], 
+        kulfi: ['cmc', 'fenugreek', 'hpmc'], 
+        dondurma: ['konjac', 'xanthan', 'mastic', 'salep'], 
+        mochi: ['cmc', 'guar', 'methylcellulose'], 
+        commercial: ['cremodan', 'grindsted'], 
+        highprotein: ['wpc', 'wpi', 'pea_protein', 'guar', 'xanthan'] 
+    };
+    (map[p] || []).forEach(id => { const el = document.getElementById('s_' + id); if (el && !el.classList.contains('disabled-item')) el.classList.add('on'); });
+    updateAllCalculations();
+}
+
+function ePreset(p) {
+    EMUS.forEach(e => { const el = document.getElementById('e_' + e.id); if (el) el.classList.remove('emu-on'); });
+    const map = { standard: ['e471', 'ps80'], natural: ['lecithin', 'quillaja'], pro: ['datem', 'gms', 'ps80'] };
+    (map[p] || []).forEach(id => { const el = document.getElementById('e_' + id); if (el && !el.classList.contains('disabled-item')) el.classList.add('emu-on'); });
+    updateAllCalculations();
+}
+
+function autoFormulate() {
+    calcMode = 'Auto';
+    const fat = parseFloat(document.getElementById('fat').value) || 10;
+    const fatType = document.getElementById('fatType').value;
+    const proc = document.getElementById('process').value;
+    const machine = document.getElementById('machine').value;
+    STABS.forEach(s => { const el = document.getElementById('s_' + s.id); if (el) el.classList.remove('on'); });
+    EMUS.forEach(e => { const el = document.getElementById('e_' + e.id); if (el) el.classList.remove('emu-on'); });
+    let stabs = [], emus = [];
+    if (fatType === 'none') { stabs = ['xanthan', 'cmc', 'guar', 'iota']; emus = ['quillaja', 'citrem']; }
+    else if (fat <= 3) { stabs = ['lgb', 'guar', 'lambda', 'cmc']; emus = ['ps80', 'ssl', 'quillaja']; }
+    else if (fat <= 8) { stabs = ['lgb', 'guar', 'lambda', 'tara']; emus = ['lactem', 'e471', 'lecithin']; }
+    else { stabs = ['lgb', 'guar', 'lambda', 'iota']; emus = ['e471', 'gms', 'acetem']; }
+    if (proc === 'cold') { stabs = stabs.filter(id => { const s = STABS.find(s => s.id === id); return s && s.cold === true; }); stabs.push('cmc', 'xanthan'); }
+    if (machine === 'wand' || machine === 'nochurn') stabs.push('psyllium', 'mcc');
+    stabs = [...new Set(stabs)];
+    stabs.forEach(id => { const el = document.getElementById('s_' + id); if (el) el.classList.add('on'); });
+    emus.forEach(id => { const el = document.getElementById('e_' + id); if (el) el.classList.add('emu-on'); });
+    updateAllCalculations();
+}
+
+function triggerManualCalc() { calcMode = 'Manual'; updateAllCalculations(); }
+function showToast(msg, isError) { const t = document.getElementById('toastBox'); t.innerText = msg; t.style.backgroundColor = isError ? '#C0392B' : '#2D6B55'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+
+function saveRecipe() {
+    const name = prompt("Enter recipe name:"); if (!name) return;
+    const data = { inputs: {}, stabs: [], emus: [], sugarBlend: [], calcMode: calcMode };
+    const inputIds = ['totalMix', 'machine', 'water', 'fat', 'msnf', 'protein', 'alcohol', 'otherSolids', 'fatType', 'salt', 'hardeningFactorInput', 'targetFrozenWater', 'process', 'homog', 'overrun', 'storageT', 'shelfLife', 'mode'];
+    inputIds.forEach(id => { const el = document.getElementById(id); if (el) data.inputs[id] = el.value; });
+    STABS.forEach(s => { if (document.getElementById('s_' + s.id).classList.contains('on')) data.stabs.push(s.id); });
+    EMUS.forEach(e => { if (document.getElementById('e_' + e.id).classList.contains('emu-on')) data.emus.push(e.id); });
+    
+    for (let i = 0; i < sugarItemsData.length; i++) {
+        const item = sugarItemsData[i];
+        if (item.name && item.quantity > 0) {
+            data.sugarBlend.push({ name: item.name, quantity: item.quantity });
+        }
+    }
+    
+    let recipes = JSON.parse(localStorage.getItem('iceCreamRecipes') || '{}');
+    recipes[name] = data;
+    localStorage.setItem('iceCreamRecipes', JSON.stringify(recipes));
+    showToast(`Saved '${name}'`, false);
+}
+
+function openLoadModal() {
+    const recipes = JSON.parse(localStorage.getItem('iceCreamRecipes') || '{}');
+    const list = document.getElementById('recipeList'); list.innerHTML = '';
+    if (Object.keys(recipes).length === 0) list.innerHTML = '<li style="padding:8px;">No saved recipes.</li>';
+    else Object.keys(recipes).forEach(name => { const li = document.createElement('li'); li.className = 'recipe-item'; li.innerHTML = `<div class="recipe-name" onclick="loadRecipe('${name.replace(/'/g, "\\'")}')">${name}</div><button class="del-btn" onclick="deleteRecipe('${name.replace(/'/g, "\\'")}')">🗑️</button>`; list.appendChild(li); });
+    document.getElementById('loadModal').classList.add('show');
+}
+
+function closeLoadModal() { document.getElementById('loadModal').classList.remove('show'); }
+function deleteRecipe(name) { if (!confirm(`Delete ${name}?`)) return; let recipes = JSON.parse(localStorage.getItem('iceCreamRecipes') || '{}'); delete recipes[name]; localStorage.setItem('iceCreamRecipes', JSON.stringify(recipes)); openLoadModal(); }
+
+function loadRecipe(name) {
+    const recipes = JSON.parse(localStorage.getItem('iceCreamRecipes') || '{}');
+    const data = recipes[name]; if (!data) return;
+    Object.keys(data.inputs).forEach(id => { const el = document.getElementById(id); if (el) el.value = data.inputs[id]; });
+    
+    if (data.sugarBlend && data.sugarBlend.length > 0) {
+        sugarItemsData = [];
+        for (let i = 0; i < data.sugarBlend.length; i++) {
+            const sugar = SUGAR_DB.find(s => s.name === data.sugarBlend[i].name);
+            if (sugar) {
+                sugarItemsData.push({
+                    name: sugar.name,
+                    quantity: data.sugarBlend[i].quantity,
+                    pac: sugar.pac,
+                    pod: sugar.pod,
+                    sweetness: sugar.sweetness
+                });
+            }
+        }
+        if (sugarItemsData.length === 0) {
+            sugarItemsData = [{ name: "", quantity: 0, pac: "", pod: "", sweetness: "" }];
+        }
+    } else {
+        sugarItemsData = [{ name: "", quantity: 0, pac: "", pod: "", sweetness: "" }];
+    }
+    renderSugarItems();
+    
+    updateProcessState(); sNone(); eNone();
+    data.stabs.forEach(id => { const el = document.getElementById('s_' + id); if (el && !el.classList.contains('disabled-item')) el.classList.add('on'); });
+    data.emus.forEach(id => { const el = document.getElementById('e_' + id); if (el && !el.classList.contains('disabled-item')) el.classList.add('emu-on'); });
+    calcMode = data.calcMode || 'Manual'; updateAllCalculations(); closeLoadModal(); showToast(`Loaded '${name}'`, false);
+}
+
+function exportExcel() {
+    if (!currentExportData) { showToast('Calculate first.', true); return; }
+    const d = currentExportData;
+    let csv = "\uFEFFIce Cream Formulation V17.1\n\nTotal Mix," + d.tm + "g\nFat," + d.fat + "%\nInitial Freezing Point," + d.fp + "°C\nServing Temperature," + d.servingTemp + "°C\nTotal Solids," + d.ts + "%\nTotal Protein," + d.tp + "%\n\nStabilisers & Proteins\n";
+    d.stabRes.forEach(r => csv += r.name + "," + r.ap.toFixed(4) + "%," + r.gr.toFixed(2) + "g\n");
+    csv += "\nEmulsifiers\n";
+    d.eRes.forEach(r => csv += r.name + "," + r.ap.toFixed(4) + "%," + r.gr.toFixed(2) + "g\n");
+    const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Formulation.csv'; a.click();
+}
+
+window.onload = function () { 
+    buildUI(); 
+    updateMachineBatch();
+    updateAllCalculations(); 
+    preset('premium'); 
+    ePreset('standard'); 
+    updateAllCalculations(); 
+};
+</script>
+</body>
+</html>
