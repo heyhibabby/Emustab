@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TransShield Freeze — Standalone</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--mut:#21262d;--bd:#30363d;--fg:#e6edf3;--dim:#8b949e;--pri:#f5a524;--ok:#3fb950;--bad:#f85149}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans","Noto Sans Gujarati","Noto Sans Devanagari",sans-serif}
+header{border-bottom:1px solid var(--bd);background:var(--card);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:20px}h1 b{color:var(--pri)}.sub{font-size:12px;color:var(--dim)}
+main{max-width:1200px;margin:auto;padding:20px;display:grid;gap:18px;grid-template-columns:340px 1fr}@media(max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:16px}
+.panel h2{margin:0 0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+button,.btn{background:var(--pri);color:#111;border:0;border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+button.sec{background:var(--mut);color:var(--fg);border:1px solid var(--bd)}button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],textarea,select{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px}
+textarea{resize:none;overflow:hidden;font-family:ui-monospace,monospace;font-size:12px}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.drop{border:2px dashed var(--bd);border-radius:12px;padding:22px;text-align:center;cursor:pointer;color:var(--dim)}.drop:hover{border-color:var(--pri)}
+.chips span{display:inline-block;background:#f5a52422;color:var(--pri);border-radius:4px;padding:1px 6px;margin:2px;font:11px ui-monospace,monospace}
+.small{font-size:11px;color:var(--dim)}.err{color:var(--bad)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px;border-bottom:1px solid var(--bd)}
+.tabs button{background:transparent;color:var(--dim)}.tabs button.on{background:var(--pri);color:#111}
+.bar{display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;align-items:center}
+.tbl{max-height:70vh;overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}
+th{position:sticky;top:0;background:var(--mut);text-align:left;padding:6px 8px;white-space:nowrap}
+td{border-top:1px solid var(--bd);padding:5px 8px;vertical-align:top;white-space:pre-wrap;word-break:break-word;max-width:320px;min-width:80px;color:var(--dim)}
+th.sel,td.sel{color:var(--fg)}th.sel{background:#f5a52430}th.new,td.new{color:var(--ok)}th.new{background:#3fb95022}
+progress{width:100%;height:8px;accent-color:var(--pri)}
+#log{max-height:120px;overflow:auto;background:var(--bg);border-radius:6px;padding:8px;font:11px ui-monospace,monospace;color:var(--dim);margin-top:8px}
+dialog{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:14px;max-width:560px}
+dialog ol{padding-left:20px}dialog li{margin:6px 0}code{background:var(--mut);padding:1px 4px;border-radius:4px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>TransShield <b>Freeze</b></h1><div class="sub">Standalone · multi-sheet translator · token protection · Google evaluate &amp; freeze</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sec" id="setupBtn">Google setup</button>
+    <button id="signBtn">Sign in with Google</button>
+  </div>
+</header>
+
+<dialog id="setup">
+  <h3 style="margin-top:0">Connect your own Google account</h3>
+  <ol>
+    <li>Open <a href="https://console.cloud.google.com/projectcreate" target="_blank" style="color:var(--pri)">Google Cloud Console</a> and create a project.</li>
+    <li>Enable <b>Google Sheets API</b> and <b>Google Drive API</b> (APIs &amp; Services → Library).</li>
+    <li>Set up the <b>OAuth consent screen</b> (External), and add yourself as a test user.</li>
+    <li>Credentials → Create credentials → <b>OAuth client ID</b> → type <b>Web application</b>.</li>
+    <li>Under <b>Authorized JavaScript origins</b> add this page's origin: <code id="origin"></code></li>
+    <li>Copy the Client ID (ends in <code>.apps.googleusercontent.com</code>) and paste it below.</li>
+  </ol>
+  <input type="text" id="cid" placeholder="xxxx.apps.googleusercontent.com" />
+  <p class="small">Stored only in this browser.</p>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button class="sec" id="cidClose">Cancel</button><button id="cidSave">Save</button></div>
+</dialog>
+
+<main>
+<section>
+  <div class="panel"><h2>1 · Source</h2>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv,.ods" class="hidden" />
+    <div class="drop" id="drop"><b style="color:var(--fg)">Choose or drop a file</b><br><span class="small">.xlsx, .xls, .csv</span></div>
+    <p class="small" style="text-align:center">— or —</p>
+    <div style="display:flex;gap:6px"><input type="text" id="link" placeholder="Paste Google Sheets link" /><button class="sec" id="linkBtn">Open</button></div>
+    <p class="small" id="srcInfo"></p>
+  </div>
+  <div class="panel"><h2>2 · Languages</h2>
+    <div class="small">From</div><select id="src"></select>
+    <div class="small" style="margin-top:10px">To — ISO codes or names, comma-separated</div>
+    <textarea id="langs" rows="2" placeholder="gu, hi, mr, ta, Bengali, French…">es</textarea>
+    <div class="chips" id="langChips"></div><div class="small err" id="langBad"></div>
+    <p class="small">Each language gets its own new column (e.g. <code>Name [gu]</code>). Originals are never changed. Re-upload a translated file and only blank cells are filled.</p>
+  </div>
+  <div class="panel"><h2>3 · Token protection</h2>
+    <div id="prot"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><b>Protected terms</b><button class="sec" id="scanBtn">Scan columns</button></div>
+    <textarea id="terms" rows="2" placeholder="Brand names, product names… comma-separated" style="margin-top:6px"></textarea>
+    <p class="small">Formulas, numbers, dates and bare IDs are always left untouched.</p>
+  </div>
+</section>
+<section style="min-width:0">
+  <div class="panel" id="empty" style="text-align:center;padding:60px 20px"><h2 style="font-size:16px;color:var(--fg);text-transform:none;letter-spacing:0">Load a workbook to begin</h2><p class="small">Pick sheets and columns, protect placeholders, and let Google translate every cell — results come back as plain static text.</p></div>
+  <div class="panel hidden" id="work" style="padding:0">
+    <div class="tabs" id="tabs"></div>
+    <div class="bar" id="bar"></div>
+    <div class="tbl"><table id="tbl"></table></div>
+    <p class="small" id="rowsInfo" style="padding:6px 14px"></p>
+  </div>
+  <div class="panel hidden" id="runPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div id="summary"></div><button id="runBtn">Translate &amp; freeze</button>
+    </div>
+    <div id="prog" class="hidden" style="margin-top:12px"><progress id="pbar" max="100" value="0"></progress><div id="log"></div></div>
+    <div id="done" class="hidden" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <b style="color:var(--ok);margin-right:auto">✔ Frozen and ready</b>
+      <button id="dlBtn">Download .xlsx</button><button class="sec" id="saveBtn">Save as Google Sheet</button>
+      <a class="btn hidden" id="openLink" target="_blank" rel="noreferrer">Open Google Sheet</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LANGS = [["auto","Auto-detect"],["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["nl","Dutch"],["ru","Russian"],["uk","Ukrainian"],["pl","Polish"],["tr","Turkish"],["ar","Arabic"],["he","Hebrew"],["fa","Persian"],["hi","Hindi"],["bn","Bengali"],["ur","Urdu"],["gu","Gujarati"],["mr","Marathi"],["pa","Punjabi"],["kn","Kannada"],["ml","Malayalam"],["or","Odia"],["ne","Nepali"],["si","Sinhala"],["ta","Tamil"],["te","Telugu"],["zh-CN","Chinese (Simplified)"],["zh-TW","Chinese (Traditional)"],["ja","Japanese"],["ko","Korean"],["th","Thai"],["vi","Vietnamese"],["id","Indonesian"],["ms","Malay"],["fil","Filipino"],["sv","Swedish"],["no","Norwegian"],["da","Danish"],["fi","Finnish"],["el","Greek"],["cs","Czech"],["ro","Romanian"],["hu","Hungarian"],["bg","Bulgarian"],["sw","Swahili"]];
+const PROT = [["html","HTML tags","<b>, &nbsp;"],["braces","Curly variables","{name}, {{x}}"],["printf","Format codes","%s, \\n"],["urls","URLs & emails","https://…"],["codes","Product / ID codes","SKU-1029"]];
+const OUTPUT_COL = /\s\[([A-Za-z]{2,3}(?:-[A-Za-z]{2,4})?)\]\s*$/;
+const KEY = "transshield.googleClientId";
+const S = { sheets: [], cfg: [], active: 0, source: null, output: null, prot: { html:1, braces:1, printf:1, urls:1, codes:1 }, token: null, running: false };
+
+/* ---------- helpers ---------- */
+const colLetter = (i) => { let s = ""; i += 1; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const html = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const width = (rows) => rows.reduce((m, r) => Math.max(m, r.length), 0);
+function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+
+function pattern(o, terms = []) {
+  const p = [];
+  const t = [...new Set(terms.map((x) => x.trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (t.length) p.push(t.map((x) => (/^\w/.test(x) && /\w$/.test(x) ? `\\b${esc(x)}\\b` : esc(x))).join("|"));
+  if (o.urls) p.push(String.raw`https?:\/\/[^\s<>"]+|[\w.+-]+@[\w-]+\.[\w.]+`);
+  if (o.html) p.push(String.raw`<\/?[a-zA-Z][^<>]*>|&[a-zA-Z#0-9]+;`);
+  if (o.braces) p.push(String.raw`\{\{[^{}]*\}\}|\{[^{}\s]*\}|\$\{[^{}]*\}|\[\[[^\]]*\]\]|%[A-Za-z_][\w]*%`);
+  if (o.printf) p.push(String.raw`%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifuxXeEgGcp@]|\\[ntr]`);
+  if (o.codes) p.push(String.raw`\b[A-Z]{2,}[-_][A-Z0-9_-]+\b|\b[A-Z0-9]*\d[A-Z0-9]*-[A-Z0-9-]+\b`);
+  return p.length ? new RegExp(p.join("|"), "gu") : null;
+}
+function protect(text, o, terms) { const re = pattern(o, terms), tokens = []; if (!re) return { text, tokens }; return { text: text.replace(re, (m) => (tokens.push(m), `[${tokens.length - 1}]`)), tokens }; }
+function restore(text, tokens) { return tokens.length ? text.replace(/[[［【]\s*(\d+)\s*[\]］】]/g, (m, n) => tokens[+n] ?? m) : text; }
+function shouldSkip(v) {
+  const s = v.trim(); if (!s || s.startsWith("=")) return true;
+  if (/^[\d\s.,:%$€£¥₹+\-/()]+$/.test(s)) return true;
+  if (/^[A-Z0-9_\-.]+$/.test(s) && !/[A-Z]{3,}\s/.test(s) && s.length < 25 && /[\d_]/.test(s)) return true;
+  return /^(https?:\/\/|www\.)\S+$/i.test(s);
+}
+function detectTerms(texts, o) {
+  const f = new Map(), re = pattern(o), brand = /\b(?:[A-Z]{2,}[A-Z0-9]*|[A-Z][a-z]+[A-Z][A-Za-z0-9]*|[A-Za-z]+\d+[A-Za-z0-9]*)\b/g;
+  for (const t of texts) { if (!t || shouldSkip(t)) continue; for (const m of [...(re ? t.match(re) || [] : []), ...(t.match(brand) || [])]) f.set(m, (f.get(m) || 0) + 1); }
+  return [...f.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map((e) => e[0]);
+}
+function parseLangs(text) {
+  const codes = [], bad = [];
+  for (const raw of text.split(/[,;\n]+/)) {
+    const t = raw.trim(); if (!t) continue;
+    const hit = LANGS.find(([c, n]) => c !== "auto" && (c.toLowerCase() === t.toLowerCase() || n.toLowerCase() === t.toLowerCase()));
+    const code = hit ? hit[0] : /^[a-z]{2,3}(-[a-z]{2,4})?$/i.test(t) ? t.toLowerCase().replace(/-(\w+)$/, (_, r) => "-" + r.toUpperCase()) : null;
+    if (code) { if (!codes.includes(code)) codes.push(code); } else bad.push(t);
+  }
+  return { codes, bad };
+}
+const targets = () => parseLangs($("langs").value).codes;
+const terms = () => $("terms").value.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean);
+
+/* ---------- Google ---------- */
+function signIn() {
+  const cid = localStorage.getItem(KEY);
+  if (!cid) { openSetup(); return Promise.reject(new Error("Add your Google Client ID first.")); }
+  if (S.token && S.token.exp > Date.now()) return Promise.resolve(S.token.value);
+  return new Promise((res, rej) => {
+    if (!window.google?.accounts) return rej(new Error("Google sign-in is still loading — try again."));
+    google.accounts.oauth2.initTokenClient({
+      client_id: cid, scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+      callback: (r) => { if (r.error || !r.access_token) return rej(new Error(r.error_description || r.error || "Sign-in failed")); S.token = { value: r.access_token, exp: Date.now() + (r.expires_in || 3600) * 1000 - 60000 }; $("signBtn").textContent = "Sign out"; res(r.access_token); },
+      error_callback: (e) => rej(new Error(e.message || e.type || "Sign-in window closed")),
+    }).requestAccessToken({ prompt: "" });
+  });
+}
+async function api(url, init = {}) {
+  const t = await signIn();
+  const r = await fetch(url, { ...init, headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json; charset=utf-8", ...(init.headers || {}) } });
+  if (!r.ok) { const b = await r.text(); let m = b; try { m = JSON.parse(b).error?.message || b; } catch {} throw new Error(`Google ${r.status}: ${m}`); }
+  return r.status === 204 ? undefined : r.json();
+}
+const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
+const q = (n) => `'${n.replace(/'/g, "''")}'`;
+async function writeValues(id, data, input) { for (let i = 0; i < data.length; i += 50) await api(`${SHEETS}/${id}/values:batchUpdate`, { method: "POST", body: JSON.stringify({ valueInputOption: input, data: data.slice(i, i + 50) }) }); }
+async function readValues(id, range) { return (await api(`${SHEETS}/${id}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE`)).values || []; }
+const createSS = (title, names) => api(SHEETS, { method: "POST", body: JSON.stringify({ properties: { title }, sheets: names.map((t) => ({ properties: { title: t.slice(0, 100) } })) }) });
+const delFile = (id) => api(`https://www.googleapis.com/drive/v3/files/${id}`, { method: "DELETE" }).catch(() => {});
+
+async function translate(jobs, source, log) {
+  const result = new Map(), by = new Map();
+  for (const j of jobs) shouldSkip(j.text) ? result.set(j.key, j.text) : by.set(j.target, [...(by.get(j.target) || []), j]);
+  const plan = [...by.entries()].map(([target, js]) => ({ target, js, texts: [...new Set(js.map((j) => j.text))] }));
+  const total = plan.reduce((n, p) => n + p.texts.length, 0);
+  log(`${jobs.length} cells queued · ${total} unique string×language pairs`, 5);
+  if (!total) return result;
+  const prot = new Map(), o = S.prot, tm = terms();
+  const ss = await createSS(`TransShield temp ${new Date().toISOString()}`, ["work"]);
+  log("Created temporary Google Sheet", 8);
+  let doneAll = 0;
+  try {
+    for (const { target, js, texts } of plan) {
+      const tr = new Map();
+      for (let st = 0; st < texts.length; st += 5000) {
+        const batch = texts.slice(st, st + 5000), end = batch.length + 1;
+        await writeValues(ss.spreadsheetId, [{ range: `work!A2:A${end}`, values: batch.map((t) => { if (!prot.has(t)) prot.set(t, protect(t, o, tm)); return [prot.get(t).text]; }) }], "RAW");
+        await writeValues(ss.spreadsheetId, [{ range: `work!B2:B${end}`, values: batch.map((_, i) => [`=GOOGLETRANSLATE(A${i + 2},"${source}","${target}")`]) }], "USER_ENTERED");
+        log(`[${target}] Injected ${batch.length} formulas — waiting for Google…`);
+        let vals = [];
+        for (let a = 0; a < 40; a++) {
+          await new Promise((r) => setTimeout(r, a ? 2500 : 3000));
+          vals = await readValues(ss.spreadsheetId, `work!B2:B${end}`);
+          const done = batch.filter((_, i) => { const v = vals[i]?.[0] || ""; return v && !/^(Loading\.{0,3}|#N\/A)$/i.test(v); }).length;
+          log(`[${target}] Calculated ${st + done}/${texts.length}`, 10 + Math.round(((doneAll + done) / total) * 80));
+          if (done === batch.length) break;
+        }
+        doneAll += batch.length;
+        batch.forEach((t, i) => { const v = vals[i]?.[0] || ""; tr.set(t, !v || /^(Loading\.{0,3}|#N\/A)$/i.test(v) ? t : restore(v, prot.get(t).tokens)); });
+      }
+      for (const j of js) result.set(j.key, tr.get(j.text) ?? j.text);
+    }
+  } finally { await delFile(ss.spreadsheetId); log("Removed temporary sheet — results frozen as static text", 92); }
+  return result;
+}
+
+/* ---------- loading ---------- */
+async function parseFile(file) {
+  const buf = await file.arrayBuffer();
+  const wb = /\.(csv|tsv|txt)$/i.test(file.name)
+    ? XLSX.read(new TextDecoder("utf-8").decode(buf).replace(/^\uFEFF/, ""), { type: "string", raw: true })
+    : XLSX.read(buf, { type: "array", codepage: 65001 });
+  return wb.SheetNames.map((name) => ({ name, rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "", raw: false, blankrows: false }).map((r) => Array.from(r, (c) => (c == null ? "" : String(c).normalize("NFC")))) }));
+}
+function guessCols(s) {
+  const sample = s.rows.slice(1, 30), w = width(s.rows), cols = [];
+  for (let c = 0; c < w; c++) {
+    if (OUTPUT_COL.test(s.rows[0]?.[c] || "")) continue;
+    const texty = sample.filter((r) => /[^\d\s.,:%$\-/]{3,}/.test(r[c] || "") && /\s/.test((r[c] || "").trim())).length;
+    if (texty >= Math.max(1, sample.length * 0.3)) cols.push(c);
+  }
+  return cols;
+}
+function loadSheets(sheets, source) {
+  Object.assign(S, { sheets, source, active: 0, output: null, cfg: sheets.map((s) => ({ enabled: s.rows.length > 0, header: true, cols: guessCols(s) })) });
+  $("srcInfo").innerHTML = `${source.kind === "file" ? "File" : "Google Sheet"}: <b>${html(source.kind === "file" ? source.name : source.title)}</b>`;
+  render();
+}
+$("drop").onclick = () => $("file").click();
+$("drop").ondragover = (e) => e.preventDefault();
+$("drop").ondrop = (e) => { e.preventDefault(); onFile(e.dataTransfer.files[0]); };
+$("file").onchange = (e) => onFile(e.target.files[0]);
+async function onFile(f) { if (!f) return; try { const s = await parseFile(f); if (!s.some((x) => x.rows.length)) throw new Error("No data found."); loadSheets(s, { kind: "file", name: f.name }); } catch (e) { alert(e.message); } $("file").value = ""; }
+$("linkBtn").onclick = async () => {
+  const m = $("link").value.trim().match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); if (!m) return alert("Paste a full Google Sheets link.");
+  try {
+    const id = m[1], meta = await api(`${SHEETS}/${id}?fields=properties.title,sheets.properties(title,sheetId)`);
+    const vals = await api(`${SHEETS}/${id}/values:batchGet?${meta.sheets.map((s) => "ranges=" + encodeURIComponent(q(s.properties.title))).join("&")}&valueRenderOption=FORMATTED_VALUE`);
+    loadSheets(meta.sheets.map((s, i) => ({ name: s.properties.title, rows: (vals.valueRanges[i]?.values || []).map((r) => r.map((c) => String(c ?? ""))) })), { kind: "gsheet", id, title: meta.properties.title });
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- plan ---------- */
+function buildPlan() {
+  const jobs = [], tg = targets();
+  const layouts = S.sheets.map((s, si) => {
+    const c = S.cfg[si], w = width(s.rows), outs = [];
+    if (!c.enabled || !c.cols.length || !tg.length) return { w, outs };
+    const hdr = s.rows[0] || []; let next = w;
+    for (const col of c.cols) for (const lang of tg) {
+      const name = `${(c.header && hdr[col]) || colLetter(col)} [${lang}]`;
+      const found = c.header ? hdr.findIndex((h) => (h || "").trim() === name) : -1;
+      outs.push({ src: col, lang, idx: found >= 0 ? found : next++, name, existing: found >= 0 });
+    }
+    for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const o of outs) {
+      const text = s.rows[r]?.[o.src] || "", have = (s.rows[r]?.[o.idx] || "").trim();
+      if (text.trim() && !have) jobs.push({ key: `${si}:${r}:${o.idx}`, text, target: o.lang });
+    }
+    return { w, outs };
+  });
+  return { jobs, layouts };
+}
+
+/* ---------- render ---------- */
+function render() {
+  const has = S.sheets.length;
+  $("empty").classList.toggle("hidden", !!has); $("work").classList.toggle("hidden", !has); $("runPanel").classList.toggle("hidden", !has);
+  if (!has) return;
+  $("tabs").innerHTML = S.sheets.map((s, i) => `<button data-tab="${i}" class="${i === S.active ? "on" : ""}">${S.cfg[i].enabled ? "●" : "○"} ${html(s.name)}</button>`).join("");
+  const c = S.cfg[S.active], orig = S.sheets[S.active], view = (S.output || S.sheets)[S.active];
+  const ow = width(orig.rows), vw = width(view.rows);
+  const all = [...Array(ow).keys()].filter((k) => !(c.header && OUTPUT_COL.test(orig.rows[0]?.[k] || "")));
+  const allOn = all.length && all.every((k) => c.cols.includes(k));
+  $("bar").innerHTML = `<label><input type="checkbox" data-k="enabled" ${c.enabled ? "checked" : ""}> Translate this sheet</label>
+    <label><input type="checkbox" data-k="header" ${c.header ? "checked" : ""}> First row is header</label>
+    ${S.output ? "" : `<label><input type="checkbox" id="allCols" ${allOn ? "checked" : ""}> <b>Select / deselect all columns</b></label>`}
+    <span class="small">${c.cols.length} column(s) selected</span>`;
+  const ac = $("allCols"); if (ac) { ac.indeterminate = !allOn && c.cols.length > 0; ac.onchange = () => { c.cols = allOn ? [] : all; render(); }; }
+  let h = `<thead><tr><th>#</th>`;
+  for (let k = 0; k < vw; k++) { const isNew = k >= ow, sel = c.cols.includes(k); h += `<th class="${isNew ? "new" : sel ? "sel" : ""}">${!isNew && !S.output ? `<input type="checkbox" data-col="${k}" ${sel ? "checked" : ""}> ` : ""}${colLetter(k)}</th>`; }
+  h += `</tr></thead><tbody>`;
+  const parts = [];
+  view.rows.forEach((row, r) => {
+    let tr = `<tr${r === 0 && c.header ? ' style="font-weight:600"' : ""}><td>${r + 1}</td>`;
+    for (let k = 0; k < vw; k++) tr += `<td class="${k >= ow ? "new" : c.cols.includes(k) ? "sel" : ""}">${html(row[k])}</td>`;
+    parts.push(tr + "</tr>");
+  });
+  $("tbl").innerHTML = h + parts.join("") + "</tbody>";
+  $("rowsInfo").textContent = `Showing all ${view.rows.length.toLocaleString()} rows.`;
+  const { jobs, layouts } = buildPlan(), reused = layouts.reduce((n, l) => n + l.outs.filter((o) => o.existing).length, 0);
+  $("summary").innerHTML = `<b>${jobs.length.toLocaleString()}</b> cells to translate into <b>${targets().length}</b> language(s)${reused ? `<div class="small">Smart delta: ${reused} existing language column(s) reused — only blanks queued.</div>` : ""}`;
+  $("runBtn").disabled = S.running || !jobs.length;
+}
+$("tabs").onclick = (e) => { const b = e.target.closest("[data-tab]"); if (b) { S.active = +b.dataset.tab; render(); } };
+$("bar").onchange = (e) => { const k = e.target.dataset.k; if (k) { S.cfg[S.active][k] = e.target.checked; render(); } };
+$("tbl").onchange = (e) => { const col = e.target.dataset.col; if (col == null) return; const c = S.cfg[S.active], n = +col; c.cols = c.cols.includes(n) ? c.cols.filter((x) => x !== n) : [...c.cols, n].sort((a, b) => a - b); render(); };
+
+/* ---------- run ---------- */
+function log(m, p) { const l = $("log"); l.insertAdjacentHTML("beforeend", `<div>› ${html(m)}</div>`); l.scrollTop = l.scrollHeight; if (p != null) $("pbar").value = p; }
+$("runBtn").onclick = async () => {
+  const { jobs, layouts } = buildPlan(); if (!jobs.length) return;
+  S.running = true; S.output = null; render();
+  $("prog").classList.remove("hidden"); $("done").classList.add("hidden"); $("log").innerHTML = ""; $("pbar").value = 2;
+  try {
+    const map = await translate(jobs, $("src").value, log);
+    S.output = S.sheets.map((s, si) => {
+      const c = S.cfg[si], rows = s.rows.map((r) => [...r]), { w, outs } = layouts[si];
+      if (!outs.length) return { ...s, rows };
+      const full = Math.max(w, ...outs.map((o) => o.idx + 1));
+      rows.forEach((row, r) => { while (row.length < full) row.push(""); for (const o of outs) { if (c.header && r === 0) row[o.idx] = o.name; else { const v = map.get(`${si}:${r}:${o.idx}`); if (v != null) row[o.idx] = v; } } });
+      return { ...s, rows };
+    });
+    if (S.source.kind === "gsheet") {
+      log("Writing frozen static text back into your sheet…", 95);
+      const data = [];
+      S.output.forEach((s, si) => { for (const o of layouts[si].outs) { const L = colLetter(o.idx); data.push({ range: `${q(s.name)}!${L}1:${L}${s.rows.length}`, values: s.rows.map((r) => [r[o.idx] || ""]) }); } });
+      await writeValues(S.source.id, data, "RAW");
+      showLink(`https://docs.google.com/spreadsheets/d/${S.source.id}/edit`);
+    }
+    log("Done — every translated cell is plain static text.", 100);
+    $("done").classList.remove("hidden"); $("saveBtn").classList.toggle("hidden", S.source.kind !== "file");
+  } catch (e) { log("Error: " + e.message); alert(e.message); }
+  S.running = false; render();
+};
+function showLink(u) { const a = $("openLink"); a.href = u; a.classList.remove("hidden"); }
+const baseName = () => (S.source.kind === "file" ? S.source.name.replace(/\.[^.]+$/, "") : S.source.title) + "_" + targets().slice(0, 4).join("-");
+$("dlBtn").onclick = () => {
+  const wb = XLSX.utils.book_new();
+  for (const s of S.output) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s.rows.map((r) => r.map((c) => (c || "").normalize("NFC")))), s.name.slice(0, 31));
+  XLSX.writeFile(wb, baseName() + ".xlsx", { bookType: "xlsx", compression: true, bookSST: true });
+};
+$("saveBtn").onclick = async () => {
+  try {
+    const ss = await createSS(baseName(), S.output.map((s) => s.name));
+    await writeValues(ss.spreadsheetId, S.output.map((s, i) => ({ range: `${q(ss.sheets[i]?.properties.title || s.name)}!A1`, values: s.rows })).filter((d) => d.values.length), "RAW");
+    showLink(ss.spreadsheetUrl); $("saveBtn").classList.add("hidden");
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- controls ---------- */
+$("src").innerHTML = LANGS.map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
+$("prot").innerHTML = PROT.map(([k, l, ex]) => `<label class="row"><span>${l} <span class="small">${html(ex)}</span></span><input type="checkbox" data-p="${k}" checked></label>`).join("");
+$("prot").onchange = (e) => { S.prot[e.target.dataset.p] = e.target.checked; };
+function onLangs() { const { codes, bad } = parseLangs($("langs").value); $("langChips").innerHTML = codes.map((c) => `<span>${c}</span>`).join(""); $("langBad").textContent = bad.length ? "Not recognised: " + bad.join(", ") : ""; autoGrow($("langs")); if (S.sheets.length) render(); }
+$("langs").oninput = onLangs; $("terms").oninput = () => autoGrow($("terms"));
+$("scanBtn").onclick = () => {
+  const texts = []; S.sheets.forEach((s, si) => { const c = S.cfg[si]; if (!c.enabled) return; for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const col of c.cols) texts.push(s.rows[r]?.[col] || ""); });
+  $("terms").value = [...new Set([...terms(), ...detectTerms(texts, S.prot)])].join(", "); autoGrow($("terms"));
+};
+function openSetup() { $("cid").value = localStorage.getItem(KEY) || ""; $("origin").textContent = location.origin; $("setup").showModal(); }
+$("setupBtn").onclick = openSetup; $("cidClose").onclick = () => $("setup").close();
+$("cidSave").onclick = () => { const v = $("cid").value.trim(); v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); S.token = null; $("signBtn").textContent = "Sign in with Google"; $("setup").close(); };
+$("signBtn").onclick = () => { if (S.token) { google.accounts.oauth2.revoke(S.token.value); S.token = null; $("signBtn").textContent = "Sign in with Google"; } else signIn().catch((e) => alert(e.message)); };
+if (location.protocol === "file:") document.querySelector(".sub").textContent += " · Google sign-in needs this file served over http(s)";
+onLangs();
+</script>
+</body>
+</html>
