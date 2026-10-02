@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TransShield Freeze — Standalone</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--mut:#21262d;--bd:#30363d;--fg:#e6edf3;--dim:#8b949e;--pri:#f5a524;--ok:#3fb950;--bad:#f85149}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans","Noto Sans Gujarati","Noto Sans Devanagari",sans-serif}
+header{border-bottom:1px solid var(--bd);background:var(--card);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:20px}h1 b{color:var(--pri)}.sub{font-size:12px;color:var(--dim)}
+main{max-width:1200px;margin:auto;padding:20px;display:grid;gap:18px;grid-template-columns:340px 1fr}@media(max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:16px}
+.panel h2{margin:0 0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+button,.btn{background:var(--pri);color:#111;border:0;border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+button.sec{background:var(--mut);color:var(--fg);border:1px solid var(--bd)}button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],textarea,select{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px}
+textarea{resize:none;overflow:hidden;font-family:ui-monospace,monospace;font-size:12px}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.drop{border:2px dashed var(--bd);border-radius:12px;padding:22px;text-align:center;cursor:pointer;color:var(--dim)}.drop:hover{border-color:var(--pri)}
+.chips span{display:inline-block;background:#f5a52422;color:var(--pri);border-radius:4px;padding:1px 6px;margin:2px;font:11px ui-monospace,monospace}
+.small{font-size:11px;color:var(--dim)}.err{color:var(--bad)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px;border-bottom:1px solid var(--bd)}
+.tabs button{background:transparent;color:var(--dim)}.tabs button.on{background:var(--pri);color:#111}
+.bar{display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;align-items:center}
+.tbl{max-height:70vh;overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}
+th{position:sticky;top:0;background:var(--mut);text-align:left;padding:6px 8px;white-space:nowrap}
+td{border-top:1px solid var(--bd);padding:5px 8px;vertical-align:top;white-space:pre-wrap;word-break:break-word;max-width:320px;min-width:80px;color:var(--dim)}
+th.sel,td.sel{color:var(--fg)}th.sel{background:#f5a52430}th.new,td.new{color:var(--ok)}th.new{background:#3fb95022}
+progress{width:100%;height:8px;accent-color:var(--pri)}
+#log{max-height:120px;overflow:auto;background:var(--bg);border-radius:6px;padding:8px;font:11px ui-monospace,monospace;color:var(--dim);margin-top:8px}
+dialog{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:14px;max-width:560px}
+dialog ol{padding-left:20px}dialog li{margin:6px 0}code{background:var(--mut);padding:1px 4px;border-radius:4px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>TransShield <b>Freeze</b></h1><div class="sub">Standalone · multi-sheet translator · token protection · Google evaluate &amp; freeze</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sec" id="setupBtn">Google setup</button>
+    <button id="signBtn">Sign in with Google</button>
+  </div>
+</header>
+
+<dialog id="setup">
+  <h3 style="margin-top:0">Connect your own Google account</h3>
+  <ol>
+    <li>Open <a href="https://console.cloud.google.com/projectcreate" target="_blank" style="color:var(--pri)">Google Cloud Console</a> and create a project.</li>
+    <li>Enable <b>Google Sheets API</b> and <b>Google Drive API</b> (APIs &amp; Services → Library).</li>
+    <li>Set up the <b>OAuth consent screen</b> (External), and add yourself as a test user.</li>
+    <li>Credentials → Create credentials → <b>OAuth client ID</b> → type <b>Web application</b>.</li>
+    <li>Under <b>Authorized JavaScript origins</b> add this page's origin: <code id="origin"></code></li>
+    <li>Copy the Client ID (ends in <code>.apps.googleusercontent.com</code>) and paste it below.</li>
+  </ol>
+  <input type="text" id="cid" placeholder="xxxx.apps.googleusercontent.com" />
+  <p class="small">Stored only in this browser.</p>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button class="sec" id="cidClose">Cancel</button><button id="cidSave">Save</button></div>
+</dialog>
+
+<main>
+<section>
+  <div class="panel"><h2>1 · Source</h2>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv,.ods" class="hidden" />
+    <div class="drop" id="drop"><b style="color:var(--fg)">Choose or drop a file</b><br><span class="small">.xlsx, .xls, .csv</span></div>
+    <p class="small" style="text-align:center">— or —</p>
+    <div style="display:flex;gap:6px"><input type="text" id="link" placeholder="Paste Google Sheets link" /><button class="sec" id="linkBtn">Open</button></div>
+    <p class="small" id="srcInfo"></p>
+  </div>
+  <div class="panel"><h2>2 · Languages</h2>
+    <div class="small">From</div><select id="src"></select>
+    <div class="small" style="margin-top:10px">To — ISO codes or names, comma-separated</div>
+    <textarea id="langs" rows="2" placeholder="gu, hi, mr, ta, Bengali, French…">es</textarea>
+    <div class="chips" id="langChips"></div><div class="small err" id="langBad"></div>
+    <p class="small">Each language gets its own new column (e.g. <code>Name [gu]</code>). Originals are never changed. Re-upload a translated file and only blank cells are filled.</p>
+  </div>
+  <div class="panel"><h2>3 · Token protection</h2>
+    <div id="prot"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><b>Protected terms</b><button class="sec" id="scanBtn">Scan columns</button></div>
+    <textarea id="terms" rows="2" placeholder="Brand names, product names… comma-separated" style="margin-top:6px"></textarea>
+    <p class="small">Formulas, numbers, dates and bare IDs are always left untouched.</p>
+  </div>
+</section>
+<section style="min-width:0">
+  <div class="panel" id="empty" style="text-align:center;padding:60px 20px"><h2 style="font-size:16px;color:var(--fg);text-transform:none;letter-spacing:0">Load a workbook to begin</h2><p class="small">Pick sheets and columns, protect placeholders, and let Google translate every cell — results come back as plain static text.</p></div>
+  <div class="panel hidden" id="work" style="padding:0">
+    <div class="tabs" id="tabs"></div>
+    <div class="bar" id="bar"></div>
+    <div class="tbl"><table id="tbl"></table></div>
+    <p class="small" id="rowsInfo" style="padding:6px 14px"></p>
+  </div>
+  <div class="panel hidden" id="runPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div id="summary"></div><button id="runBtn">Translate &amp; freeze</button>
+    </div>
+    <div id="prog" class="hidden" style="margin-top:12px"><progress id="pbar" max="100" value="0"></progress><div id="log"></div></div>
+    <div id="done" class="hidden" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <b style="color:var(--ok);margin-right:auto">✔ Frozen and ready</b>
+      <button id="dlBtn">Download .xlsx</button><button class="sec" id="saveBtn">Save as Google Sheet</button>
+      <a class="btn hidden" id="openLink" target="_blank" rel="noreferrer">Open Google Sheet</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LANGS = [["auto","Auto-detect"],["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["nl","Dutch"],["ru","Russian"],["uk","Ukrainian"],["pl","Polish"],["tr","Turkish"],["ar","Arabic"],["he","Hebrew"],["fa","Persian"],["hi","Hindi"],["bn","Bengali"],["ur","Urdu"],["gu","Gujarati"],["mr","Marathi"],["pa","Punjabi"],["kn","Kannada"],["ml","Malayalam"],["or","Odia"],["ne","Nepali"],["si","Sinhala"],["ta","Tamil"],["te","Telugu"],["zh-CN","Chinese (Simplified)"],["zh-TW","Chinese (Traditional)"],["ja","Japanese"],["ko","Korean"],["th","Thai"],["vi","Vietnamese"],["id","Indonesian"],["ms","Malay"],["fil","Filipino"],["sv","Swedish"],["no","Norwegian"],["da","Danish"],["fi","Finnish"],["el","Greek"],["cs","Czech"],["ro","Romanian"],["hu","Hungarian"],["bg","Bulgarian"],["sw","Swahili"]];
+const PROT = [["html","HTML tags","<b>, &nbsp;"],["braces","Curly variables","{name}, {{x}}"],["printf","Format codes","%s, \\n"],["urls","URLs & emails","https://…"],["codes","Product / ID codes","SKU-1029"]];
+const OUTPUT_COL = /\s\[([A-Za-z]{2,3}(?:-[A-Za-z]{2,4})?)\]\s*$/;
+const KEY = "transshield.googleClientId";
+const S = { sheets: [], cfg: [], active: 0, source: null, output: null, prot: { html:1, braces:1, printf:1, urls:1, codes:1 }, token: null, running: false, jobColumnMap: null };
+
+/* ---------- helpers ---------- */
+const colLetter = (i) => { let s = ""; i += 1; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const html = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const width = (rows) => rows.reduce((m, r) => Math.max(m, r.length), 0);
+function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+
+function pattern(o, terms = []) {
+  const p = [];
+  const t = [...new Set(terms.map((x) => x.trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (t.length) p.push(t.map((x) => (/^\w/.test(x) && /\w$/.test(x) ? `\\b${esc(x)}\\b` : esc(x))).join("|"));
+  if (o.urls) p.push(String.raw`https?:\/\/[^\s<>"]+|[\w.+-]+@[\w-]+\.[\w.]+`);
+  if (o.html) p.push(String.raw`<\/?[a-zA-Z][^<>]*>|&[a-zA-Z#0-9]+;`);
+  if (o.braces) p.push(String.raw`\{\{[^{}]*\}\}|\{[^{}\s]*\}|\$\{[^{}]*\}|\[\[[^\]]*\]\]|%[A-Za-z_][\w]*%`);
+  if (o.printf) p.push(String.raw`%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifuxXeEgGcp@]|\\[ntr]`);
+  if (o.codes) p.push(String.raw`\b[A-Z]{2,}[-_][A-Z0-9_-]+\b|\b[A-Z0-9]*\d[A-Z0-9]*-[A-Z0-9-]+\b`);
+  return p.length ? new RegExp(p.join("|"), "gu") : null;
+}
+function protect(text, o, terms) { const re = pattern(o, terms), tokens = []; if (!re) return { text, tokens }; return { text: text.replace(re, (m) => (tokens.push(m), `[${tokens.length - 1}]`)), tokens }; }
+function restore(text, tokens) { return tokens.length ? text.replace(/[[［【]\s*(\d+)\s*[\]］】]/g, (m, n) => tokens[+n] ?? m) : text; }
+function shouldSkip(v) {
+  const s = v.trim(); if (!s || s.startsWith("=")) return true;
+  if (/^[\d\s.,:%$€£¥₹+\-/()]+$/.test(s)) return true;
+  if (/^[A-Z0-9_\-.]+$/.test(s) && !/[A-Z]{3,}\s/.test(s) && s.length < 25 && /[\d_]/.test(s)) return true;
+  return /^(https?:\/\/|www\.)\S+$/i.test(s);
+}
+function detectTerms(texts, o) {
+  const f = new Map(), re = pattern(o), brand = /\b(?:[A-Z]{2,}[A-Z0-9]*|[A-Z][a-z]+[A-Z][A-Za-z0-9]*|[A-Za-z]+\d+[A-Za-z0-9]*)\b/g;
+  for (const t of texts) { if (!t || shouldSkip(t)) continue; for (const m of [...(re ? t.match(re) || [] : []), ...(t.match(brand) || [])]) f.set(m, (f.get(m) || 0) + 1); }
+  return [...f.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map((e) => e[0]);
+}
+function parseLangs(text) {
+  const codes = [], bad = [];
+  for (const raw of text.split(/[,;\n]+/)) {
+    const t = raw.trim(); if (!t) continue;
+    const hit = LANGS.find(([c, n]) => c !== "auto" && (c.toLowerCase() === t.toLowerCase() || n.toLowerCase() === t.toLowerCase()));
+    const code = hit ? hit[0] : /^[a-z]{2,3}(-[a-z]{2,4})?$/i.test(t) ? t.toLowerCase().replace(/-(\w+)$/, (_, r) => "-" + r.toUpperCase()) : null;
+    if (code) { if (!codes.includes(code)) codes.push(code); } else bad.push(t);
+  }
+  return { codes, bad };
+}
+const targets = () => parseLangs($("langs").value).codes;
+const terms = () => $("terms").value.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean);
+
+/* ---------- Google ---------- */
+function signIn() {
+  const cid = localStorage.getItem(KEY);
+  if (!cid) { openSetup(); return Promise.reject(new Error("Add your Google Client ID first.")); }
+  if (S.token && S.token.exp > Date.now()) return Promise.resolve(S.token.value);
+  return new Promise((res, rej) => {
+    if (!window.google?.accounts) return rej(new Error("Google sign-in is still loading — try again."));
+    google.accounts.oauth2.initTokenClient({
+      client_id: cid, scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+      callback: (r) => { if (r.error || !r.access_token) return rej(new Error(r.error_description || r.error || "Sign-in failed")); S.token = { value: r.access_token, exp: Date.now() + (r.expires_in || 3600) * 1000 - 60000 }; $("signBtn").textContent = "Sign out"; res(r.access_token); },
+      error_callback: (e) => rej(new Error(e.message || e.type || "Sign-in window closed")),
+    }).requestAccessToken({ prompt: "" });
+  });
+}
+async function api(url, init = {}) {
+  const t = await signIn();
+  const r = await fetch(url, { ...init, headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json; charset=utf-8", ...(init.headers || {}) } });
+  if (!r.ok) { const b = await r.text(); let m = b; try { m = JSON.parse(b).error?.message || b; } catch {} throw new Error(`Google ${r.status}: ${m}`); }
+  return r.status === 204 ? undefined : r.json();
+}
+const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
+const q = (n) => `'${n.replace(/'/g, "''")}'`;
+async function writeValues(id, data, input) { for (let i = 0; i < data.length; i += 50) await api(`${SHEETS}/${id}/values:batchUpdate`, { method: "POST", body: JSON.stringify({ valueInputOption: input, data: data.slice(i, i + 50) }) }); }
+async function readValues(id, range) { return (await api(`${SHEETS}/${id}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE`)).values || []; }
+const createSS = (title, names) => api(SHEETS, { method: "POST", body: JSON.stringify({ properties: { title }, sheets: names.map((t) => ({ properties: { title: t.slice(0, 100) } })) }) });
+const delFile = (id) => api(`https://www.googleapis.com/drive/v3/files/${id}`, { method: "DELETE" }).catch(() => {});
+
+/* ---------- loading ---------- */
+async function parseFile(file) {
+  const buf = await file.arrayBuffer();
+  const wb = /\.(csv|tsv|txt)$/i.test(file.name)
+    ? XLSX.read(new TextDecoder("utf-8").decode(buf).replace(/^\uFEFF/, ""), { type: "string", raw: true })
+    : XLSX.read(buf, { type: "array", codepage: 65001 });
+  return wb.SheetNames.map((name) => ({ name, rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "", raw: false, blankrows: false }).map((r) => Array.from(r, (c) => (c == null ? "" : String(c).normalize("NFC")))) }));
+}
+function guessCols(s) {
+  const sample = s.rows.slice(1, 30), w = width(s.rows), cols = [];
+  for (let c = 0; c < w; c++) {
+    if (OUTPUT_COL.test(s.rows[0]?.[c] || "")) continue;
+    const texty = sample.filter((r) => /[^\d\s.,:%$\-/]{3,}/.test(r[c] || "") && /\s/.test((r[c] || "").trim())).length;
+    if (texty >= Math.max(1, sample.length * 0.3)) cols.push(c);
+  }
+  return cols;
+}
+function loadSheets(sheets, source) {
+  Object.assign(S, { sheets, source, active: 0, output: null, cfg: sheets.map((s) => ({ enabled: s.rows.length > 0, header: true, cols: guessCols(s) })) });
+  $("srcInfo").innerHTML = `${source.kind === "file" ? "File" : "Google Sheet"}: <b>${html(source.kind === "file" ? source.name : source.title)}</b>`;
+  render();
+}
+$("drop").onclick = () => $("file").click();
+$("drop").ondragover = (e) => e.preventDefault();
+$("drop").ondrop = (e) => { e.preventDefault(); onFile(e.dataTransfer.files[0]); };
+$("file").onchange = (e) => onFile(e.target.files[0]);
+async function onFile(f) { if (!f) return; try { const s = await parseFile(f); if (!s.some((x) => x.rows.length)) throw new Error("No data found."); loadSheets(s, { kind: "file", name: f.name }); } catch (e) { alert(e.message); } $("file").value = ""; }
+$("linkBtn").onclick = async () => {
+  const m = $("link").value.trim().match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); if (!m) return alert("Paste a full Google Sheets link.");
+  try {
+    const id = m[1], meta = await api(`${SHEETS}/${id}?fields=properties.title,sheets.properties(title,sheetId)`);
+    const vals = await api(`${SHEETS}/${id}/values:batchGet?${meta.sheets.map((s) => "ranges=" + encodeURIComponent(q(s.properties.title))).join("&")}&valueRenderOption=FORMATTED_VALUE`);
+    loadSheets(meta.sheets.map((s, i) => ({ name: s.properties.title, rows: (vals.valueRanges[i]?.values || []).map((r) => r.map((c) => String(c ?? ""))) })), { kind: "gsheet", id, title: meta.properties.title });
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- plan ---------- */
+function buildPlan() {
+  const jobs = [], tg = targets();
+  const layouts = S.sheets.map((s, si) => {
+    const c = S.cfg[si], w = width(s.rows), outs = [];
+    if (!c.enabled || !c.cols.length || !tg.length) return { w, outs };
+    const hdr = s.rows[0] || []; let next = w;
+    for (const col of c.cols) for (const lang of tg) {
+      const name = `${(c.header && hdr[col]) || colLetter(col)} [${lang}]`;
+      const found = c.header ? hdr.findIndex((h) => (h || "").trim() === name) : -1;
+      const mapped = S.jobColumnMap?.[`${si}:${col}:${lang}`];
+      outs.push({ src: col, lang, idx: mapped ?? (found >= 0 ? found : next++), name, existing: found >= 0 });
+    }
+    for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const o of outs) {
+      const text = s.rows[r]?.[o.src] || "", have = (s.rows[r]?.[o.idx] || "").trim();
+      if (text.trim() && !have) jobs.push({ key: `${si}:${r}:${o.idx}`, text, target: o.lang });
+    }
+    return { w, outs };
+  });
+  return { jobs, layouts };
+}
+
+/* ---------- render ---------- */
+function render() {
+  const has = S.sheets.length;
+  $("empty").classList.toggle("hidden", !!has); $("work").classList.toggle("hidden", !has); $("runPanel").classList.toggle("hidden", !has);
+  if (!has) return;
+  $("tabs").innerHTML = S.sheets.map((s, i) => `<button data-tab="${i}" class="${i === S.active ? "on" : ""}">${S.cfg[i].enabled ? "●" : "○"} ${html(s.name)}</button>`).join("");
+  const c = S.cfg[S.active], orig = S.sheets[S.active], view = (S.output || S.sheets)[S.active];
+  const ow = width(orig.rows), vw = width(view.rows);
+  const all = [...Array(ow).keys()].filter((k) => !(c.header && OUTPUT_COL.test(orig.rows[0]?.[k] || "")));
+  const allOn = all.length && all.every((k) => c.cols.includes(k));
+  $("bar").innerHTML = `<label><input type="checkbox" data-k="enabled" ${c.enabled ? "checked" : ""}> Translate this sheet</label>
+    <label><input type="checkbox" data-k="header" ${c.header ? "checked" : ""}> First row is header</label>
+    ${S.output ? "" : `<label><input type="checkbox" id="allCols" ${allOn ? "checked" : ""}> <b>Select / deselect all columns</b></label>`}
+    <span class="small">${c.cols.length} column(s) selected</span>`;
+  const ac = $("allCols"); if (ac) { ac.indeterminate = !allOn && c.cols.length > 0; ac.onchange = () => { c.cols = allOn ? [] : all; render(); }; }
+  let h = `<thead><tr><th>#</th>`;
+  for (let k = 0; k < vw; k++) { const isNew = k >= ow, sel = c.cols.includes(k); h += `<th class="${isNew ? "new" : sel ? "sel" : ""}">${!isNew && !S.output ? `<input type="checkbox" data-col="${k}" ${sel ? "checked" : ""}> ` : ""}${colLetter(k)}</th>`; }
+  h += `</tr></thead><tbody>`;
+  const parts = [];
+  view.rows.forEach((row, r) => {
+    let tr = `<tr${r === 0 && c.header ? ' style="font-weight:600"' : ""}><td>${r + 1}</td>`;
+    for (let k = 0; k < vw; k++) tr += `<td class="${k >= ow ? "new" : c.cols.includes(k) ? "sel" : ""}">${html(row[k])}</td>`;
+    parts.push(tr + "</tr>");
+  });
+  $("tbl").innerHTML = h + parts.join("") + "</tbody>";
+  $("rowsInfo").textContent = `Showing all ${view.rows.length.toLocaleString()} rows.`;
+  const { jobs, layouts } = buildPlan(), reused = layouts.reduce((n, l) => n + l.outs.filter((o) => o.existing).length, 0);
+  $("summary").innerHTML = `<b>${jobs.length.toLocaleString()}</b> cells to translate into <b>${targets().length}</b> language(s)${reused ? `<div class="small">Smart delta: ${reused} existing language column(s) reused — only blanks queued.</div>` : ""}`;
+  $("runBtn").disabled = S.running || !jobs.length;
+}
+$("tabs").onclick = (e) => { const b = e.target.closest("[data-tab]"); if (b) { S.active = +b.dataset.tab; render(); } };
+$("bar").onchange = (e) => { const k = e.target.dataset.k; if (k) { S.cfg[S.active][k] = e.target.checked; render(); } };
+$("tbl").onchange = (e) => { const col = e.target.dataset.col; if (col == null) return; const c = S.cfg[S.active], n = +col; c.cols = c.cols.includes(n) ? c.cols.filter((x) => x !== n) : [...c.cols, n].sort((a, b) => a - b); render(); };
+
+/* ---------- run ---------- */
+function log(m, p) { const l = $("log"); l.insertAdjacentHTML("beforeend", `<div>› ${html(m)}</div>`); l.scrollTop = l.scrollHeight; if (p != null) $("pbar").value = p; }
+$("runBtn").onclick = async () => {
+  const { jobs, layouts } = buildPlan(); if (!jobs.length) return;
+  S.running = true; S.output = null; render();
+  $("prog").classList.remove("hidden"); $("done").classList.add("hidden"); $("log").innerHTML = ""; $("pbar").value = 2;
+  try {
+    const map = await translate(jobs, $("src").value, log);
+    S.output = S.sheets.map((s, si) => {
+      const c = S.cfg[si], rows = s.rows.map((r) => [...r]), { w, outs } = layouts[si];
+      if (!outs.length) return { ...s, rows };
+      const full = Math.max(w, ...outs.map((o) => o.idx + 1));
+      rows.forEach((row, r) => { while (row.length < full) row.push(""); for (const o of outs) { if (c.header && r === 0) row[o.idx] = o.name; else { const v = map.get(`${si}:${r}:${o.idx}`); if (v != null) row[o.idx] = v; } } });
+      return { ...s, rows };
+    });
+    if (S.source.kind === "gsheet") {
+      log("Writing frozen static text back into your sheet…", 95);
+      const data = [];
+      S.output.forEach((s, si) => { for (const o of layouts[si].outs) { const L = colLetter(o.idx); data.push({ range: `${q(s.name)}!${L}1:${L}${s.rows.length}`, values: s.rows.map((r) => [r[o.idx] || ""]) }); } });
+      await writeValues(S.source.id, data, "RAW");
+      showLink(`https://docs.google.com/spreadsheets/d/${S.source.id}/edit`);
+    }
+    log("Done — every translated cell is plain static text.", 100);
+    $("done").classList.remove("hidden"); $("saveBtn").classList.toggle("hidden", S.source.kind !== "file");
+  } catch (e) { log("Error: " + e.message); alert(e.message); }
+  S.running = false; render();
+};
+function showLink(u) { const a = $("openLink"); a.href = u; a.classList.remove("hidden"); }
+const baseName = () => (S.source.kind === "file" ? S.source.name.replace(/\.[^.]+$/, "") : S.source.title) + "_" + targets().slice(0, 4).join("-");
+$("dlBtn").onclick = () => {
+  const wb = XLSX.utils.book_new();
+  for (const s of S.output) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s.rows.map((r) => r.map((c) => (c || "").normalize("NFC")))), s.name.slice(0, 31));
+  XLSX.writeFile(wb, baseName() + ".xlsx", { bookType: "xlsx", compression: true, bookSST: true });
+};
+$("saveBtn").onclick = async () => {
+  try {
+    const ss = await createSS(baseName(), S.output.map((s) => s.name));
+    await writeValues(ss.spreadsheetId, S.output.map((s, i) => ({ range: `${q(ss.sheets[i]?.properties.title || s.name)}!A1`, values: s.rows })).filter((d) => d.values.length), "RAW");
+    showLink(ss.spreadsheetUrl); $("saveBtn").classList.add("hidden");
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- controls ---------- */
+$("src").innerHTML = LANGS.map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
+$("prot").innerHTML = PROT.map(([k, l, ex]) => `<label class="row"><span>${l} <span class="small">${html(ex)}</span></span><input type="checkbox" data-p="${k}" checked></label>`).join("");
+$("prot").onchange = (e) => { S.prot[e.target.dataset.p] = e.target.checked; };
+function onLangs() { const { codes, bad } = parseLangs($("langs").value); $("langChips").innerHTML = codes.map((c) => `<span>${c}</span>`).join(""); $("langBad").textContent = bad.length ? "Not recognised: " + bad.join(", ") : ""; autoGrow($("langs")); if (S.sheets.length) render(); }
+$("langs").oninput = onLangs; $("terms").oninput = () => autoGrow($("terms"));
+$("scanBtn").onclick = () => {
+  const texts = []; S.sheets.forEach((s, si) => { const c = S.cfg[si]; if (!c.enabled) return; for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const col of c.cols) texts.push(s.rows[r]?.[col] || ""); });
+  $("terms").value = [...new Set([...terms(), ...detectTerms(texts, S.prot)])].join(", "); autoGrow($("terms"));
+};
+function openSetup() { $("cid").value = localStorage.getItem(KEY) || ""; $("origin").textContent = location.origin; $("setup").showModal(); }
+$("setupBtn").onclick = openSetup; $("cidClose").onclick = () => $("setup").close();
+$("cidSave").onclick = () => { const v = $("cid").value.trim(); v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); S.token = null; $("signBtn").textContent = "Sign in with Google"; $("setup").close(); };
+$("signBtn").onclick = () => { if (S.token) { google.accounts.oauth2.revoke(S.token.value); S.token = null; $("signBtn").textContent = "Sign in with Google"; } else signIn().catch((e) => alert(e.message)); };
+if (location.protocol === "file:") document.querySelector(".sub").textContent += " · Google sign-in needs this file served over http(s)";
+onLangs();
+</script>
+<script>
+"use strict";
+/* Resumable job engine: IndexedDB, paced micro-batches, recovery and exports. */
+(() => {
+  const DB_NAME = "TransShieldDB", DB_VERSION = 1, TTL = 7 * 86400000;
+  const FORMULA_BATCH = 180, ACTIVE_LIMIT = 240000, COOLDOWN_MS = 150000;
+  const RETRIES = 3, BACKOFF = [4000, 8000, 16000];
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const copy = (v) => JSON.parse(JSON.stringify(v));
+  let dbPromise, recentDialog, workerPromise, pauseRequested = false, stopRequested = false;
+  let resumeBanner, hud, rulesArea, autoJob = null;
+  S.cellCache = new Map(); S.currentJob = null; S.timingActive = false; S.hudCurrent = "";
+  S.pacedGoogle = false; S.lastGoogleRequestAt = 0; S.activeProcessingMs = 0;
+
+  const injectUI = () => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #recentBtn{margin-left:4px}.resume-banner{position:sticky;top:0;z-index:5;margin:12px auto 0;max-width:1160px;padding:12px 16px;background:#332812;border:1px solid #8b641c;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      .resume-banner[hidden]{display:none}.resume-banner p{margin:0}.job-status{display:inline-block;padding:2px 7px;border-radius:999px;background:#30363d;color:#e6edf3;font-size:11px}
+      .job-status.completed{background:#16351f;color:#3fb950}.job-status.running{background:#3b2e13;color:#f5a524}.job-status.failed,.job-status.interrupted{background:#3d2020;color:#f85149}
+      #recentDialog{width:min(900px,95vw);max-width:900px}#recentDialog .tbl{max-height:60vh}#recentDialog td{min-width:0}
+      #jobHud{margin-top:14px;padding:12px;background:var(--bg);border:1px solid var(--bd);border-radius:10px}
+      #jobHud .hud-top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+      #jobHud .hud-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+      #jobHud .hud-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:6px;margin:10px 0}
+      #jobHud .hud-stat{background:var(--card);padding:7px 9px;border-radius:7px}.phonetic-rule{margin-top:10px}
+      #phoneticRules{min-height:54px}
+      @media(max-width:600px){.resume-banner{margin:8px;padding:10px}#recentDialog{padding:12px}}
+    `;
+    document.head.append(style);
+    const recentBtn = document.createElement("button");
+    recentBtn.type = "button"; recentBtn.id = "recentBtn"; recentBtn.className = "sec";
+    recentBtn.textContent = "Recent Jobs (7 Days)";
+    $("setupBtn").parentElement.append(recentBtn);
+    recentBtn.onclick = showRecentJobs;
+    resumeBanner = document.createElement("div");
+    resumeBanner.id = "resumeBanner"; resumeBanner.className = "resume-banner"; resumeBanner.hidden = true;
+    document.querySelector("header").after(resumeBanner);
+    const panel = document.createElement("div");
+    panel.id = "jobHud"; panel.className = "hidden";
+    panel.innerHTML = `<div class="hud-top"><div><b id="hudTitle">Translation job</b><div class="small" id="hudDetail"></div></div><div class="small" id="hudState"></div></div>
+      <progress id="hudProgress" max="100" value="0" style="margin-top:10px"></progress>
+      <div class="hud-stats" id="hudStats"></div><div class="small" id="hudCurrent"></div>
+      <div class="hud-actions"><button class="sec" id="pauseJobBtn">Pause</button><button id="resumeJobBtn" class="hidden">Resume</button><button class="sec" id="stopJobBtn">Stop &amp; Keep</button><button class="sec" id="partialJobBtn">Download Partial .xlsx</button><button class="sec" id="resetJobBtn">Reset Job</button></div>`;
+    $("runPanel").append(panel); hud = panel;
+    $("pauseJobBtn").onclick = () => { pauseRequested = true; $("pauseJobBtn").disabled = true; $("hudState").textContent = "Pausing after this micro-batch…"; };
+    $("resumeJobBtn").onclick = () => S.currentJob && startJob(S.currentJob);
+    $("stopJobBtn").onclick = () => { stopRequested = true; pauseRequested = true; $("stopJobBtn").disabled = true; $("hudState").textContent = "Stopping after this micro-batch and keeping saved work…"; };
+    $("partialJobBtn").onclick = downloadCurrentPartial;
+    $("resetJobBtn").onclick = resetCurrentJob;
+    $("runBtn").onclick = () => startJob();
+    $("dlBtn").onclick = () => S.currentJob ? downloadCurrentPartial() : downloadSheets(S.output || S.sheets, currentBaseName());
+    recentDialog = document.createElement("dialog");
+    recentDialog.id = "recentDialog";
+    recentDialog.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:8px 0">Recent Jobs (7 Days)</h3><button class="sec" id="closeRecent">Close</button></div>
+      <p class="small">Jobs and cell results are stored in this browser and expire after seven days.</p>
+      <div class="tbl"><table><thead><tr><th>File / Sheets</th><th>Last active</th><th>Progress</th><th>Status</th><th>Actions</th></tr></thead><tbody id="recentRows"></tbody></table></div>`;
+    document.body.append(recentDialog);
+    $("closeRecent").onclick = () => recentDialog.close();
+    recentDialog.onclick = (e) => { if (e.target === recentDialog) recentDialog.close(); };
+    recentDialog.querySelector("tbody").onclick = handleRecentAction;
+
+    const panelSection = document.createElement("div");
+    panelSection.className = "panel phonetic-rule";
+    panelSection.innerHTML = `<h2>4 · Phonetic replacements</h2><textarea id="phoneticRules" rows="2" placeholder="One replacement per line, e.g. Gelato => Jilato"></textarea><p class="small">Applied after token protection and before Google Translate. Use one <code>from =&gt; to</code> pair per line.</p>`;
+    $("prot").closest(".panel").after(panelSection);
+    rulesArea = $("phoneticRules");
+
+    const auth = document.createElement("dialog");
+    auth.id = "authDialog";
+    auth.innerHTML = `<h3 style="margin-top:0">Google authorization needs attention</h3><p id="authMessage">The saved job is safe. Check your Google Client ID, account access, or requested Sheets/Drive scopes, then sign in again.</p><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="sec" id="authSetup">Google setup</button><button class="sec" id="authClose">Close</button><button id="authSignin">Sign in again</button></div>`;
+    document.body.append(auth);
+    $("authSetup").onclick = () => { auth.close(); openSetup(); };
+    $("authClose").onclick = () => auth.close();
+    $("authSignin").onclick = () => signIn().then(() => auth.close()).catch((e) => $("authMessage").textContent = e.message);
+    rulesArea.addEventListener("input", () => autoGrow(rulesArea));
+  };
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      if (!("indexedDB" in window)) return reject(new Error("IndexedDB is unavailable in this browser."));
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const d = req.result;
+        if (!d.objectStoreNames.contains("jobs")) d.createObjectStore("jobs", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("cells")) {
+          const store = d.createObjectStore("cells", { keyPath: ["jobId", "sheetName", "rowIdx", "langCode"] });
+          store.createIndex("jobId", "jobId", { unique: false });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error("Could not open IndexedDB."));
+      req.onblocked = () => reject(new Error("Close other TransShield tabs to upgrade local storage."));
+    });
+    return dbPromise;
+  }
+  const requestValue = (req) => new Promise((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
+  const transactionDone = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error("IndexedDB transaction aborted.")); });
+  async function getJob(id) { const d = await openDB(); return requestValue(d.transaction("jobs").objectStore("jobs").get(id)); }
+  async function getAllJobs() { const d = await openDB(); return requestValue(d.transaction("jobs").objectStore("jobs").getAll()); }
+  async function getCells(id) { const d = await openDB(); return requestValue(d.transaction("cells").objectStore("cells").index("jobId").getAll(id)); }
+  async function saveJob(job, records = []) {
+    const d = await openDB(), tx = d.transaction(["jobs", "cells"], "readwrite");
+    tx.objectStore("jobs").put(job);
+    for (const row of records) tx.objectStore("cells").put(row);
+    await transactionDone(tx);
+    if (records.length) for (const row of records) S.cellCache.set(JSON.stringify([row.sheetName, row.rowIdx, row.langCode]), row);
+  }
+  async function deleteJob(id) {
+    const d = await openDB(), tx = d.transaction(["jobs", "cells"], "readwrite");
+    tx.objectStore("jobs").delete(id);
+    const req = tx.objectStore("cells").index("jobId").openCursor(IDBKeyRange.only(id));
+    req.onsuccess = () => { const cursor = req.result; if (cursor) { cursor.delete(); cursor.continue(); } };
+    await transactionDone(tx);
+  }
+  async function pruneExpired() {
+    const jobs = await getAllJobs(), now = Date.now();
+    for (const job of jobs) {
+      if (job.expiresAt < now) await deleteJob(job.id);
+      else if (job.status === "running") { job.status = "interrupted"; job.lastActiveAt = now; await saveJob(job); }
+    }
+  }
+  function parsePhoneticRules(text) {
+    return String(text || "").split(/\n+/).map((line) => {
+      const m = line.match(/^\s*(.*?)\s*=>\s*(.*?)\s*$/);
+      return m && m[1] && m[2] ? { from: m[1], to: m[2] } : null;
+    }).filter(Boolean);
+  }
+  async function fingerprint(source, sheets, langs) {
+    const seed = JSON.stringify([source?.name || source?.title || "workbook", sheets.map((s) => s.name), sheets.reduce((n, s) => n + s.rows.length, 0), langs]);
+    if (crypto?.subtle) {
+      const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(seed));
+      return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+    let h = 2166136261; for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    return `fallback-${(h >>> 0).toString(16)}`;
+  }
+  function columnMapFrom(layouts) {
+    const map = {};
+    layouts.forEach((layout, si) => layout.outs.forEach((o) => { map[`${si}:${o.src}:${o.lang}`] = o.idx; }));
+    return map;
+  }
+  function columnNamesFrom(layouts) {
+    const map = {};
+    layouts.forEach((layout, si) => layout.outs.forEach((o) => { map[`${si}:${o.src}:${o.lang}`] = o.name; }));
+    return map;
+  }
+  async function createJob() {
+    const parsed = parseLangs($("langs").value);
+    if (!parsed.codes.length) throw new Error("Add at least one valid target language.");
+    const { jobs, layouts } = buildPlan();
+    if (!jobs.length) return null;
+    const id = await fingerprint(S.source, S.sheets, parsed.codes);
+    const job = {
+      id, sourceFileName: S.source.kind === "file" ? S.source.name : S.source.title,
+      source: copy(S.source), sourceSheets: copy(S.sheets), sheetNames: S.sheets.map((s) => s.name),
+      selectedColumns: S.cfg.map((c) => [...c.cols]), cfg: copy(S.cfg), targetLanguages: parsed.codes,
+      protectedTerms: terms(), phoneticRules: parsePhoneticRules(rulesArea.value),
+      columnMap: columnMapFrom(layouts), columnNames: columnNamesFrom(layouts),
+      totalCells: jobs.length, completedCells: 0, failedCells: 0, skippedCells: 0, windowProcessingMs: 0,
+      status: "idle", activeProcessingMs: 0, createdAt: Date.now(), lastActiveAt: Date.now(),
+      expiresAt: Date.now() + TTL, cooldownRemainingMs: 0
+    };
+    const previous = await getJob(id);
+    if (previous) await deleteJob(id);
+    S.cellCache = new Map(); S.currentJob = job;
+    prepareOutput(job, []);
+    await saveJob(job);
+    return job;
+  }
+  function prepareOutput(job, cells) {
+    S.sheets = copy(job.sourceSheets); S.cfg = copy(job.cfg); S.source = copy(job.source);
+    S.jobColumnMap = copy(job.columnMap || {}); S.currentJob = job; S.output = null; S.active = 0;
+    S.hudCurrent = "";
+    S.cellCache = new Map(cells.map((c) => [JSON.stringify([c.sheetName, c.rowIdx, c.langCode]), c]));
+    $("langs").value = job.targetLanguages.join(", "); $("terms").value = (job.protectedTerms || []).join(", ");
+    rulesArea.value = (job.phoneticRules || []).map((r) => `${r.from} => ${r.to}`).join("\n");
+    onLangs(); autoGrow($("terms")); autoGrow(rulesArea);
+    for (let si = 0; si < S.sheets.length; si++) {
+      const rows = S.sheets[si].rows, cfg = S.cfg[si] || { header: true, cols: [] };
+      const entries = Object.entries(S.jobColumnMap).filter(([k]) => k.startsWith(`${si}:`));
+      for (const [key, idx] of entries) {
+        const [, src, lang] = key.split(":");
+        const name = job.columnNames?.[key] || `${cfg.header && rows[0]?.[+src] || colLetter(+src)} [${lang}]`;
+        for (const row of rows) while (row.length <= idx) row.push("");
+        if (cfg.header && rows[0]) rows[0][idx] = name;
+      }
+    }
+    for (const cell of cells) if (cell.status === "completed" || cell.status === "skipped") applyCell(cell, cell.value);
+    render(); $("jobHud").classList.remove("hidden"); paintHud(job);
+  }
+  async function applySavedValues(job) { const cells = await getCells(job.id); prepareOutput(job, cells); return cells; }
+  function applyCell(cell, value) {
+    const si = S.sheets.findIndex((s) => s.name === cell.sheetName);
+    if (si < 0) return;
+    const idx = S.jobColumnMap?.[`${si}:${cell.sourceCol}:${cell.langCode}`];
+    if (idx == null) return;
+    const rows = S.sheets[si].rows, row = rows[cell.rowIdx];
+    if (!row) return;
+    while (row.length <= idx) row.push("");
+    row[idx] = value ?? "";
+  }
+  function cellRecord(job, sheetName, rowIdx, sourceCol, langCode, status, value) {
+    return { jobId: job.id, sheetName, rowIdx, sourceCol, langCode, status, value: value ?? "", updatedAt: Date.now() };
+  }
+  async function commitRecords(job, records) {
+    for (const r of records) { if (r.status === "completed" || r.status === "skipped") applyCell(r, r.value); }
+    for (const r of records) S.cellCache.set(JSON.stringify([r.sheetName, r.rowIdx, r.langCode]), r);
+    const all = [...S.cellCache.values()];
+    job.completedCells = all.filter((c) => c.status === "completed").length;
+    job.failedCells = all.filter((c) => c.status === "failed").length;
+    job.skippedCells = all.filter((c) => c.status === "skipped").length;
+    job.lastActiveAt = Date.now();
+    await saveJob(job, records); paintHud(job);
+  }
+  function updateJobConfig(job) {
+    job.selectedColumns = S.cfg.map((c) => [...c.cols]); job.cfg = copy(S.cfg);
+    job.protectedTerms = terms(); job.phoneticRules = parsePhoneticRules(rulesArea.value);
+    job.columnMap = copy(S.jobColumnMap || job.columnMap); job.columnNames = job.columnNames || {};
+  }
+  function statusLabel(status) {
+    return ({ completed: "Completed", paused: "Paused", cooldown: "Cooldown", interrupted: "Interrupted", running: "Running", idle: "Not started" })[status] || status;
+  }
+  function prettyTime(ms) { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`; }
+  function paintHud(job, current = null) {
+    if (!hud || !job) return;
+    if (current !== null) S.hudCurrent = current;
+    const finished = job.completedCells + job.skippedCells, total = job.totalCells || 0;
+    $("hudTitle").textContent = job.sourceFileName || "Translation job";
+    $("hudDetail").textContent = (job.sheetNames || []).join(", ");
+    $("hudState").textContent = statusLabel(job.status) + (job.status === "cooldown" ? ` · resumes in ${Math.ceil((job.cooldownRemainingMs || 0) / 1000)}s` : "");
+    $("hudProgress").value = total ? Math.min(100, finished / total * 100) : 0;
+    $("hudStats").innerHTML = `<div class="hud-stat"><b>${job.completedCells}</b><div class="small">Completed</div></div><div class="hud-stat"><b>${Math.max(0, total - finished - job.failedCells)}</b><div class="small">Pending</div></div><div class="hud-stat"><b>${job.failedCells}</b><div class="small">Failed</div></div><div class="hud-stat"><b>${job.skippedCells}</b><div class="small">Skipped</div></div><div class="hud-stat"><b>${prettyTime(job.activeProcessingMs || 0)}</b><div class="small">Total active time · ${prettyTime(job.windowProcessingMs || 0)} / 4m window</div></div>`;
+    $("hudCurrent").textContent = S.hudCurrent;
+    const isRunning = job.status === "running" || job.status === "cooldown";
+    $("pauseJobBtn").classList.toggle("hidden", !isRunning);
+    $("pauseJobBtn").disabled = pauseRequested;
+    $("resumeJobBtn").classList.toggle("hidden", isRunning || job.status === "completed");
+    $("stopJobBtn").classList.toggle("hidden", !isRunning);
+    $("resetJobBtn").classList.toggle("hidden", job.status === "completed");
+  }
+  function currentBaseName() {
+    if (!S.source) return "TransShield_partial";
+    return (S.source.kind === "file" ? S.source.name.replace(/\.[^.]+$/, "") : S.source.title) + "_" + targets().slice(0, 4).join("-");
+  }
+  function downloadSheets(sheets, filename) {
+    const wb = XLSX.utils.book_new();
+    for (const s of sheets || []) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s.rows.map((r) => r.map((c) => String(c ?? "").normalize("NFC")))), s.name.slice(0, 31));
+    XLSX.writeFile(wb, `${filename}.xlsx`, { bookType: "xlsx", compression: true, bookSST: true });
+  }
+  function downloadCurrentPartial() { downloadSheets(S.sheets, `${currentBaseName()}_partial`); }
+  async function downloadJobPartial(id) {
+    const job = await getJob(id); if (!job) return alert("This saved job has expired or was deleted.");
+    const cells = await getCells(id), sheets = copy(job.sourceSheets);
+    for (const s of sheets) {
+      const si = sheets.findIndex((x) => x.name === s.name), cfg = job.cfg[si] || {};
+      for (const [key, idx] of Object.entries(job.columnMap || {}).filter(([k]) => k.startsWith(`${si}:`))) {
+        const [, src, lang] = key.split(":");
+        for (const row of s.rows) while (row.length <= idx) row.push("");
+        if (cfg.header && s.rows[0]) s.rows[0][idx] = job.columnNames?.[key] || `${s.rows[0][+src] || colLetter(+src)} [${lang}]`;
+      }
+    }
+    for (const cell of cells) if (cell.status === "completed" || cell.status === "skipped") {
+      const si = sheets.findIndex((s) => s.name === cell.sheetName), idx = job.columnMap?.[`${si}:${cell.sourceCol}:${cell.langCode}`];
+      if (si >= 0 && idx != null && sheets[si].rows[cell.rowIdx]) sheets[si].rows[cell.rowIdx][idx] = cell.value;
+    }
+    const base = (job.sourceFileName || "TransShield").replace(/\.[^.]+$/, "");
+    downloadSheets(sheets, `${base}_partial`);
+  }
+  async function resetCurrentJob() {
+    const job = S.currentJob; if (!job) return;
+    if (!confirm("Delete this job’s saved progress and restore the original workbook in this tab? This cannot be undone.")) return;
+    await deleteJob(job.id);
+    S.sheets = copy(job.sourceSheets); S.cfg = copy(job.cfg); S.jobColumnMap = null;
+    S.currentJob = null; S.cellCache.clear(); S.output = null; $("jobHud").classList.add("hidden"); render();
+  }
+  function showAuthError(error) {
+    $("authMessage").textContent = `${error.message || error} Your saved translation state has been retained. Check the Google Client ID and Sheets/Drive authorization, then sign in again.`;
+    if (!$("authDialog").open) $("authDialog").showModal();
+  }
+  function isAuthError(e) { return e?.auth || /Google (401|403)|unauthori[sz]ed|forbidden|invalid_client|client.?id|oauth.*client|client.*not found|insufficient.*scope|access_denied/i.test(e?.message || ""); }
+  function applyPhonetics(text, rules) {
+    let value = text;
+    for (const { from, to } of rules || []) {
+      try { value = value.replace(new RegExp(esc(from), "giu"), to); } catch {}
+    }
+    return value;
+  }
+
+  const originalApi = api;
+  api = async function pacedRetryingApi(url, init = {}) {
+    const token = await signIn();
+    for (let attempt = 0; attempt <= RETRIES; attempt++) {
+      if (S.pacedGoogle) {
+        const remaining = 4000 - (Date.now() - S.lastGoogleRequestAt);
+        if (S.lastGoogleRequestAt && remaining > 0) await delay(remaining);
+      }
+      let response;
+      const began = performance.now();
+      try {
+        response = await fetch(url, { ...init, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8", ...(init.headers || {}) } });
+      } catch (error) {
+        if (S.timingActive) { const elapsed = performance.now() - began; S.currentJob.activeProcessingMs += elapsed; S.currentJob.windowProcessingMs = (S.currentJob.windowProcessingMs || 0) + elapsed; }
+        S.lastGoogleRequestAt = Date.now();
+        if (attempt < RETRIES) { await delay(BACKOFF[attempt]); continue; }
+        throw error;
+      }
+      if (S.timingActive) { const elapsed = performance.now() - began; S.currentJob.activeProcessingMs += elapsed; S.currentJob.windowProcessingMs = (S.currentJob.windowProcessingMs || 0) + elapsed; }
+      S.lastGoogleRequestAt = Date.now();
+      if (response.ok) return response.status === 204 ? undefined : response.json();
+      const body = await response.text(); let message = body;
+      try { message = JSON.parse(body).error?.message || body; } catch {}
+      const error = new Error(`Google ${response.status}: ${message}`);
+      if (response.status === 401 || response.status === 403 || /invalid_client|client.?id|insufficient.*scope/i.test(message)) { error.auth = true; throw error; }
+      if ([429, 500, 502, 503, 504].includes(response.status) && attempt < RETRIES) { await delay(BACKOFF[attempt]); continue; }
+      throw error;
+    }
+  };
+
+  async function matchingUnfinishedJob() {
+    const id = await fingerprint(S.source, S.sheets, targets());
+    const job = await getJob(id);
+    return job && job.expiresAt >= Date.now() && job.status !== "completed" ? job : null;
+  }
+  function setResumeBanner(job) {
+    autoJob = job;
+    if (!job) { resumeBanner.hidden = true; return; }
+    const total = job.totalCells || 0, done = job.completedCells + job.skippedCells;
+    const pct = total ? Math.floor(done / total * 100) : 0;
+    resumeBanner.innerHTML = `<p><b>Unfinished translation found for ${html(job.sourceFileName)} (${pct}% complete).</b> Resume with saved cells or start over?</p><div style="display:flex;gap:6px;flex-wrap:wrap"><button data-resume="yes">Restore &amp; Resume</button><button class="sec" data-partial="yes">Download Partial .xlsx</button><button class="sec" data-startover="yes">Start over</button><button class="sec" data-dismiss="yes">Dismiss</button></div>`;
+    resumeBanner.hidden = false;
+    resumeBanner.onclick = async (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.resume) { resumeBanner.hidden = true; await startJob(job); }
+      else if (b.dataset.partial) await downloadJobPartial(job.id);
+      else if (b.dataset.dismiss) resumeBanner.hidden = true;
+      else if (b.dataset.startover) {
+        if (!confirm("Delete the unfinished saved job and its translated cells, then start a fresh run?")) return;
+        await deleteJob(job.id); resumeBanner.hidden = true; await startJob(null, true);
+      }
+    };
+  }
+  const originalLoadSheets = loadSheets;
+  loadSheets = function (sheets, source) {
+    S.jobColumnMap = null; S.currentJob = null; S.cellCache = new Map();
+    originalLoadSheets(sheets, source);
+    setTimeout(() => matchingUnfinishedJob().then(setResumeBanner).catch((e) => console.warn("Could not check saved jobs:", e)), 20);
+  };
+
+  async function showRecentJobs() {
+    try {
+      const jobs = (await getAllJobs()).filter((j) => j.expiresAt >= Date.now()).sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+      $("recentRows").innerHTML = jobs.length ? jobs.map((j) => {
+        const done = j.completedCells + j.skippedCells, total = j.totalCells || 0;
+        const badge = j.status === "failed" ? "interrupted" : j.status;
+        return `<tr><td class="sel"><b>${html(j.sourceFileName)}</b><div class="small">${html((j.sheetNames || []).join(", "))}</div></td><td>${new Date(j.lastActiveAt || j.createdAt).toLocaleString()}</td><td>${done.toLocaleString()} / ${total.toLocaleString()} cells · ${j.targetLanguages.length} language(s)</td><td><span class="job-status ${badge}">${statusLabel(j.status)}</span></td><td><div style="display:flex;gap:4px;flex-wrap:wrap"><button data-action="restore" data-id="${html(j.id)}">Restore &amp; Resume</button><button class="sec" data-action="download" data-id="${html(j.id)}">Partial .xlsx</button><button class="sec" data-action="delete" data-id="${html(j.id)}">Delete</button></div></td></tr>`;
+      }).join("") : `<tr><td colspan="5" class="small">No saved jobs in the last seven days.</td></tr>`;
+      if (!recentDialog.open) recentDialog.showModal();
+    } catch (e) { alert(`Could not read recent jobs: ${e.message}`); }
+  }
+  async function handleRecentAction(e) {
+    const b = e.target.closest("button[data-action]"); if (!b) return;
+    const { action, id } = b.dataset;
+    if (action === "download") return downloadJobPartial(id);
+    if (action === "delete") {
+      if (!confirm("Permanently delete this saved job and its cell results?")) return;
+      await deleteJob(id); return showRecentJobs();
+    }
+    const job = await getJob(id); if (!job) return showRecentJobs();
+    recentDialog.close(); await startJob(job);
+  }
+
+  async function startJob(savedJob = null, forceFresh = false) {
+    if (S.running || workerPromise) return;
+    try {
+      let job = savedJob;
+      if (!job && !forceFresh) job = await matchingUnfinishedJob();
+      if (!job) job = await createJob();
+      if (!job) { alert("There are no blank translation cells to process."); return; }
+      pauseRequested = false; stopRequested = false; S.running = true;
+      $("prog").classList.remove("hidden"); $("done").classList.add("hidden"); $("log").innerHTML = ""; $("pbar").value = 0;
+      const cells = await getCells(job.id);
+      prepareOutput(job, cells); updateJobConfig(job);
+      job.status = "running"; job.lastActiveAt = Date.now(); await saveJob(job);
+      S.currentJob = job; S.timingActive = true; S.pacedGoogle = true; S.lastGoogleRequestAt = 0;
+      workerPromise = runQueue(job);
+      await workerPromise;
+    } catch (e) {
+      const job = S.currentJob;
+      if (job) { job.status = "interrupted"; job.lastActiveAt = Date.now(); await saveJob(job).catch(() => {}); paintHud(job); }
+      log("Error: " + e.message);
+      if (isAuthError(e)) showAuthError(e); else alert(e.message);
+    } finally {
+      S.timingActive = false; S.pacedGoogle = false; S.running = false; workerPromise = null;
+      if (S.currentJob) { paintHud(S.currentJob); render(); }
+    }
+  }
+  function descriptorFor(job, item, layouts) {
+    const [siText, rowText, idxText] = item.key.split(":");
+    const si = +siText, rowIdx = +rowText, idx = +idxText;
+    const out = layouts[si]?.outs.find((o) => o.idx === idx);
+    if (!out) return null;
+    return { item, si, sheetName: S.sheets[si].name, rowIdx, sourceCol: out.src, langCode: out.lang, text: item.text };
+  }
+  async function waitCooldown(job) {
+    job.status = "cooldown"; job.cooldownRemainingMs = job.cooldownRemainingMs || COOLDOWN_MS;
+    await saveJob(job); paintHud(job);
+    while (job.cooldownRemainingMs > 0 && !pauseRequested && !stopRequested) {
+      const step = Math.min(1000, job.cooldownRemainingMs); await delay(step);
+      job.cooldownRemainingMs -= step; paintHud(job);
+    }
+    if (job.cooldownRemainingMs <= 0) { job.cooldownRemainingMs = 0; job.windowProcessingMs = 0; }
+    return job.cooldownRemainingMs <= 0;
+  }
+  async function runQueue(job) {
+    let tempSheet = null;
+    try {
+      const { jobs } = buildPlan();
+      const layouts = buildPlan().layouts;
+      const descriptors = jobs.map((j) => descriptorFor(job, j, layouts)).filter(Boolean);
+      const skipRecords = [], grouped = new Map();
+      for (const d of descriptors) {
+        if (shouldSkip(d.text)) skipRecords.push(cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, d.langCode, "skipped", d.text));
+        else {
+          const key = `${d.langCode}\u0000${d.text}`;
+          if (!grouped.has(key)) grouped.set(key, { lang: d.langCode, text: d.text, cells: [] });
+          grouped.get(key).cells.push(d);
+        }
+      }
+      if (skipRecords.length) await commitRecords(job, skipRecords);
+      const langs = [...new Set([...grouped.values()].map((g) => g.lang))];
+      const totalFormulaGroups = grouped.size; let finishedGroups = 0, batchNumber = 0;
+      if (totalFormulaGroups) {
+        tempSheet = await createSS(`TransShield temp ${new Date().toISOString()}`, ["work"]);
+        log("Created temporary Google Sheet for paced formula batches", 3);
+      }
+      for (const lang of langs) {
+        const groups = [...grouped.values()].filter((g) => g.lang === lang);
+        for (let st = 0; st < groups.length; st += FORMULA_BATCH) {
+          if (pauseRequested || stopRequested) break;
+          const batch = groups.slice(st, st + FORMULA_BATCH), end = batch.length + 1; batchNumber++;
+          paintHud(job, `Language ${lang} · sheet ${batch[0]?.cells[0]?.sheetName || "—"} · micro-batch ${batchNumber} · ${batch.length} formulas`);
+          const payload = batch.map((g) => {
+            const protectedText = protect(g.text, S.prot, terms());
+            g.tokens = protectedText.tokens;
+            return applyPhonetics(protectedText.text, job.phoneticRules || []);
+          });
+          try {
+            await writeValues(tempSheet.spreadsheetId, [{ range: `work!A2:A${end}`, values: payload.map((t) => [t]) }], "RAW");
+            await writeValues(tempSheet.spreadsheetId, [{ range: `work!B2:B${end}`, values: batch.map((_, i) => [`=GOOGLETRANSLATE(A${i + 2},"${$("src").value}","${lang}")`]) }], "USER_ENTERED");
+            log(`[${lang}] Injected ${batch.length} formulas — verifying settled values`);
+            let vals = [], settled = false;
+            for (let attempt = 0; attempt < 31; attempt++) {
+              vals = await readValues(tempSheet.spreadsheetId, `work!B2:B${end}`);
+              settled = batch.every((_, i) => { const v = String(vals[i]?.[0] ?? "").trim(); return v && !/^(Loading\.{0,3})$/i.test(v); });
+              if (settled) break;
+            }
+            const records = [];
+            batch.forEach((g, i) => {
+              const raw = String(vals[i]?.[0] ?? "").trim();
+              const ok = settled && raw && !/^#(?:N\/A|ERROR|VALUE|REF|NAME|NUM|DIV\/0)/i.test(raw);
+              const value = ok ? restore(raw, g.tokens) : "";
+              for (const d of g.cells) records.push(cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, lang, ok ? "completed" : "failed", value));
+            });
+            await commitRecords(job, records);
+            finishedGroups += batch.length;
+            log(`[${lang}] Saved ${records.filter((r) => r.status === "completed").length} cells · ${job.completedCells}/${job.totalCells} complete`, Math.min(95, Math.round((finishedGroups / Math.max(1, totalFormulaGroups)) * 90) + 5));
+          } catch (error) {
+            if (isAuthError(error)) throw error;
+            const failed = batch.flatMap((g) => g.cells.map((d) => cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, lang, "failed", "")));
+            await commitRecords(job, failed);
+            finishedGroups += batch.length;
+            log(`[${lang}] Micro-batch failed after retries; marked only these ${failed.length} cells failed: ${error.message}`);
+          }
+          if ((job.windowProcessingMs || 0) >= ACTIVE_LIMIT && !pauseRequested && !stopRequested) {
+            const cooled = await waitCooldown(job);
+            if (!cooled) break;
+            job.status = "running"; await saveJob(job); paintHud(job);
+          }
+          if (st + FORMULA_BATCH < groups.length && !pauseRequested && !stopRequested) await delay(4000);
+        }
+        if (pauseRequested || stopRequested) break;
+      }
+      if (tempSheet) { await delFile(tempSheet.spreadsheetId); tempSheet = null; }
+      if (stopRequested) {
+        job.status = "interrupted"; log("Stopped safely. Completed cells remain saved; use Restore & Resume to continue.");
+      } else if (pauseRequested) {
+        job.status = "paused"; log("Paused safely after the current micro-batch. Saved results are ready to resume.");
+      } else {
+        const remaining = Math.max(0, job.totalCells - job.completedCells - job.skippedCells - job.failedCells);
+        job.status = remaining || job.failedCells ? "interrupted" : "completed";
+        if (job.status === "completed") {
+          job.completedAt = Date.now(); S.output = copy(S.sheets); $("done").classList.remove("hidden");
+          $("saveBtn").classList.toggle("hidden", S.source.kind !== "file");
+          $("pbar").value = 100; log("Done — completed cells are frozen as static text.", 100);
+          if (S.source.kind === "gsheet") {
+            try {
+              const data = [];
+              const current = buildPlan().layouts;
+              current.forEach((layout, si) => layout.outs.forEach((o) => {
+                const letter = colLetter(o.idx), rows = S.sheets[si].rows;
+                data.push({ range: `${q(S.sheets[si].name)}!${letter}1:${letter}${rows.length}`, values: rows.map((r) => [r[o.idx] || ""]) });
+              }));
+              log("Writing completed translations to the loaded Google Sheet…");
+              await writeValues(S.source.id, data, "RAW");
+              showLink(`https://docs.google.com/spreadsheets/d/${S.source.id}/edit`);
+            } catch (e) { log(`Local job completed; Google Sheet write-back failed: ${e.message}`); if (isAuthError(e)) showAuthError(e); }
+          }
+        } else log(`Run ended with ${job.failedCells} failed and ${remaining} pending cell(s). You can resume or download a partial workbook.`);
+      }
+      job.lastActiveAt = Date.now(); await saveJob(job); paintHud(job); render();
+    } finally {
+      if (tempSheet) await delFile(tempSheet.spreadsheetId);
+    }
+  }
+
+  const originalOnFile = onFile;
+  onFile = async function (file) { if (!file) return; setResumeBanner(null); return originalOnFile(file); };
+  injectUI();
+  // Preserve a mapped output index for headerless workbooks across reloads.
+  $("runBtn").title = "Start or resume the saved translation job";
+  rulesArea.addEventListener("change", () => { if (S.currentJob && !S.running) updateJobConfig(S.currentJob); });
+  $("langs").addEventListener("change", () => { if (S.currentJob && !S.running) updateJobConfig(S.currentJob); });
+  window.addEventListener("beforeunload", () => {
+    if (S.currentJob && S.currentJob.status === "running") { S.currentJob.status = "interrupted"; saveJob(S.currentJob).catch(() => {}); }
+  });
+
+  openDB().then(pruneExpired).catch((e) => {
+    console.error(e);
+    log(`Local job persistence unavailable: ${e.message}`);
+    $("runBtn").disabled = true;
+  });
+})();
+</script>
+</body>
+</html>
