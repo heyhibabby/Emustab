@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TransShield Freeze — Standalone</title>
+<script>
+(() => {
+  /* Every copy of the library must match one of these SHA-384 hashes (Subresource Integrity). */
+  const H20 = "EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT";
+  const H18 = "vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw";
+  const sources = [
+    { url: "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js", hash: H20 },
+    { url: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", hash: H18 },
+    { url: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", hash: H18 }
+  ];
+  const known = new Set([H20, H18]);
+  const dbName = "TransShieldAssetCache", storeName = "libraries", cacheId = "sheetjs-verified";
+  const canHash = !!(window.crypto && crypto.subtle);
+  const sha384 = async (bytes) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-384", bytes))));
+  const decoder = new TextDecoder("utf-8", { ignoreBOM: true }), encoder = new TextEncoder();
+  const openCache = () => new Promise((resolve, reject) => {
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(storeName, { keyPath: "id" });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const readCache = async () => {
+    const db = await openCache();
+    const value = await new Promise((resolve, reject) => {
+      const request = db.transaction(storeName).objectStore(storeName).get(cacheId);
+      request.onsuccess = () => resolve(request.result?.source || null);
+      request.onerror = () => reject(request.error);
+    });
+    db.close(); return value;
+  };
+  const writeCache = async (source) => {
+    const db = await openCache();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, "readwrite");
+      tx.objectStore(storeName).put({ id: cacheId, source, savedAt: Date.now() });
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  };
+  const execute = (source) => {
+    const script = document.createElement("script");
+    script.textContent = source; document.head.append(script);
+    if (!window.XLSX) throw new Error("SheetJS did not initialize.");
+  };
+  const loadScriptTag = (src) => new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src.url; script.crossOrigin = "anonymous"; script.integrity = "sha384-" + src.hash;
+    script.onload = resolve; script.onerror = () => { script.remove(); reject(new Error("blocked, unreachable or failed integrity check: " + src.url)); };
+    document.head.append(script);
+  });
+  window.XLSXReady = (async () => {
+    if (canHash) {
+      try {
+        const cached = await readCache();
+        if (cached) {
+          if (known.has(await sha384(encoder.encode(cached)))) { try { execute(cached); return; } catch (e) { console.warn("Cached SheetJS failed to start:", e); } }
+          else console.warn("Cached SheetJS failed its integrity check and was ignored.");
+        }
+      } catch (e) { console.info("No local SheetJS cache yet:", e); }
+    }
+    const failures = [];
+    for (const src of sources) {
+      if (canHash) {
+        try {
+          const r = await fetch(src.url, { mode: "cors" });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const bytes = await r.arrayBuffer();
+          if ((await sha384(bytes)) !== src.hash) throw new Error("integrity check failed");
+          const source = decoder.decode(bytes);
+          execute(source);
+          writeCache(source).catch((e) => console.warn("Could not cache SheetJS:", e));
+          return;
+        } catch (e) { failures.push(src.url + " (" + (e.message || e) + ")"); }
+      }
+      try { await loadScriptTag(src); if (window.XLSX) return; } catch (e) { failures.push(e.message); }
+    }
+    throw new Error("Spreadsheet library could not be loaded from any verified source. Check your internet connection, content blockers, or network restrictions, then reload. Tried: " + failures.join("; "));
+  })();
+  window.XLSXReady.catch((error) => console.error("Spreadsheet support is unavailable:", error));
+})();
+</script>
+<script>
+(() => {
+  window.googleIdentityLoadError = false;
+  window.googleIdentityReady = new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => { window.googleIdentityLoadError = true; resolve(false); };
+    document.head.append(script);
+  });
+})();
+</script>
+<style>
+:root{color-scheme:dark;--bg:#0d1117;--card:#161b22;--mut:#21262d;--bd:#30363d;--fg:#e6edf3;--dim:#8b949e;--pri:#f5a524;--ok:#3fb950;--bad:#f85149}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans","Noto Sans Gujarati","Noto Sans Devanagari",sans-serif}
+header{border-bottom:1px solid var(--bd);background:var(--card);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:20px}h1 b{color:var(--pri)}.sub{font-size:12px;color:var(--dim)}
+main{max-width:1200px;margin:auto;padding:20px;display:grid;gap:18px;grid-template-columns:340px 1fr}@media(max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:16px}
+.panel h2{margin:0 0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+button,.btn{background:var(--pri);color:#111;border:0;border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+button.sec{background:var(--mut);color:var(--fg);border:1px solid var(--bd)}button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],textarea,select{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px}
+textarea{resize:none;overflow:hidden;font-family:ui-monospace,monospace;font-size:12px}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.drop{border:2px dashed var(--bd);border-radius:12px;padding:22px;text-align:center;cursor:pointer;color:var(--dim)}.drop:hover{border-color:var(--pri)}
+.chips span{display:inline-block;background:#f5a52422;color:var(--pri);border-radius:4px;padding:1px 6px;margin:2px;font:11px ui-monospace,monospace}
+.small{font-size:11px;color:var(--dim)}.err{color:var(--bad)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px;border-bottom:1px solid var(--bd)}
+.tabs button{background:transparent;color:var(--dim)}.tabs button.on{background:var(--pri);color:#111}
+.bar{display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;align-items:center}
+.tbl{max-height:70vh;overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}
+th{position:sticky;top:0;background:var(--mut);text-align:left;padding:6px 8px;white-space:nowrap}
+td{border-top:1px solid var(--bd);padding:5px 8px;vertical-align:top;white-space:pre-wrap;word-break:break-word;max-width:320px;min-width:80px;color:var(--dim)}
+th.sel,td.sel{color:var(--fg)}th.sel{background:#f5a52430}th.new,td.new{color:var(--ok)}th.new{background:#3fb95022}
+progress{width:100%;height:8px;accent-color:var(--pri)}
+#log{max-height:120px;overflow:auto;background:var(--bg);border-radius:6px;padding:8px;font:11px ui-monospace,monospace;color:var(--dim);margin-top:8px}
+dialog{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:14px;max-width:560px}
+dialog ol{padding-left:20px}dialog li{margin:6px 0}code{background:var(--mut);padding:1px 4px;border-radius:4px}
+.hidden{display:none!important}:focus-visible{outline:2px solid var(--pri);outline-offset:2px}.drop.over{border-color:var(--pri);color:var(--fg)}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>TransShield <b>Freeze</b></h1><div class="sub">Standalone · multi-sheet translator · token protection · Google evaluate &amp; freeze</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sec" id="setupBtn">Google setup</button>
+    <button id="signBtn">Sign in with Google</button>
+  </div>
+</header>
+
+<dialog id="setup">
+  <h3 style="margin-top:0">Connect your own Google account</h3>
+  <ol>
+    <li>Open <a href="https://console.cloud.google.com/projectcreate" target="_blank" style="color:var(--pri)">Google Cloud Console</a> and create a project.</li>
+    <li>Enable <b>Google Sheets API</b> and <b>Google Drive API</b> (APIs &amp; Services → Library).</li>
+    <li>Set up the <b>OAuth consent screen</b> (External), and add yourself as a test user.</li>
+    <li>Credentials → Create credentials → <b>OAuth client ID</b> → type <b>Web application</b>.</li>
+    <li>Under <b>Authorized JavaScript origins</b> add this page's origin: <code id="origin"></code></li>
+    <li>Copy the Client ID (ends in <code>.apps.googleusercontent.com</code>) and paste it below.</li>
+  </ol>
+  <input type="text" id="cid" placeholder="xxxx.apps.googleusercontent.com" />
+  <p class="small">Stored only in this browser.</p>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button class="sec" id="cidClose">Cancel</button><button id="cidSave">Save</button></div>
+</dialog>
+
+<main>
+<section>
+  <div class="panel"><h2>1 · Source</h2>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv,.ods" class="hidden" />
+    <div class="drop" id="drop" role="button" tabindex="0"><b style="color:var(--fg)">Choose or drop a file</b><br><span class="small">.xlsx, .xls, .csv, .ods</span></div>
+    <p class="small" style="text-align:center">— or —</p>
+    <div style="display:flex;gap:6px"><input type="text" id="link" placeholder="Paste Google Sheets link" /><button class="sec" id="linkBtn">Open</button></div>
+    <p class="small" id="srcInfo"></p>
+    <p class="small">SheetJS is cached on this device after its first online load. Google sign-in and translation still require internet.</p>
+  </div>
+  <div class="panel"><h2>2 · Languages</h2>
+    <div class="small">From</div><select id="src"></select>
+    <div class="small" style="margin-top:10px">To — ISO codes or names, comma-separated</div>
+    <textarea id="langs" rows="2" placeholder="gu, hi, mr, ta, Bengali, French…">es</textarea>
+    <div class="chips" id="langChips"></div><div class="small err" id="langBad"></div>
+    <p class="small">Each language gets its own new column (e.g. <code>Name [gu]</code>). Originals are never changed. Re-upload a translated file and only blank cells are filled.</p>
+  </div>
+  <div class="panel"><h2>3 · Token protection</h2>
+    <div id="prot"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><b>Protected terms</b><button class="sec" id="scanBtn">Scan columns</button></div>
+    <textarea id="terms" rows="2" placeholder="Brand names, product names… comma-separated" style="margin-top:6px"></textarea>
+    <p class="small">Formulas, numbers, dates and bare IDs are always left untouched.</p>
+  </div>
+</section>
+<section style="min-width:0">
+  <div class="panel" id="empty" style="text-align:center;padding:60px 20px"><h2 style="font-size:16px;color:var(--fg);text-transform:none;letter-spacing:0">Load a workbook to begin</h2><p class="small">Pick sheets and columns, protect placeholders, and let Google translate every cell — results come back as plain static text.</p></div>
+  <div class="panel hidden" id="work" style="padding:0">
+    <div class="tabs" id="tabs"></div>
+    <div class="bar" id="bar"></div>
+    <div class="tbl"><table id="tbl"></table></div>
+    <p class="small" id="rowsInfo" style="padding:6px 14px"></p>
+  </div>
+  <div class="panel hidden" id="runPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div id="summary" aria-live="polite"></div><button id="runBtn">Translate &amp; freeze</button>
+    </div>
+    <div id="prog" class="hidden" style="margin-top:12px"><progress id="pbar" max="100" value="0" aria-label="Translation progress"></progress><div id="log" role="log" aria-live="polite"></div></div>
+    <div id="done" class="hidden" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <b style="color:var(--ok);margin-right:auto">✔ Frozen and ready</b>
+      <button id="dlBtn">Download .xlsx</button><button class="sec" id="saveBtn">Save as Google Sheet</button>
+      <a class="btn hidden" id="openLink" target="_blank" rel="noreferrer">Open Google Sheet</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LANGS = [["auto","Auto-detect"],["en","English"],["es","Spanish"],["fr","French"],["de","German"],["it","Italian"],["pt","Portuguese"],["nl","Dutch"],["ru","Russian"],["uk","Ukrainian"],["pl","Polish"],["tr","Turkish"],["ar","Arabic"],["he","Hebrew"],["fa","Persian"],["hi","Hindi"],["bn","Bengali"],["ur","Urdu"],["gu","Gujarati"],["mr","Marathi"],["pa","Punjabi"],["kn","Kannada"],["ml","Malayalam"],["or","Odia"],["ne","Nepali"],["si","Sinhala"],["ta","Tamil"],["te","Telugu"],["zh-CN","Chinese (Simplified)"],["zh-TW","Chinese (Traditional)"],["ja","Japanese"],["ko","Korean"],["th","Thai"],["vi","Vietnamese"],["id","Indonesian"],["ms","Malay"],["fil","Filipino"],["sv","Swedish"],["no","Norwegian"],["da","Danish"],["fi","Finnish"],["el","Greek"],["cs","Czech"],["ro","Romanian"],["hu","Hungarian"],["bg","Bulgarian"],["sw","Swahili"]];
+const PROT = [["html","HTML tags","<b>, &nbsp;"],["braces","Curly variables","{name}, {{x}}"],["printf","Format codes","%s, \\n"],["urls","URLs & emails","https://…"],["codes","Product / ID codes","SKU-1029"]];
+const SUPPORTED = "af sq am ar hy az eu be bn bs bg ca ceb zh-CN zh-TW co hr cs da nl en eo et fi fr fy gl ka de el gu ht ha haw he hi hmn hu is ig id ga it ja jv kn kk km rw ko ku ky lo la lv lt lb mk mg ms ml mt mi mr mn my ne no ny or ps fa pl pt pa ro ru sm gd sr st sn sd si sk sl so es su sw sv fil tg ta tt te th tr tk uk ur ug uz vi cy xh yi yo zu".split(" ");
+const ALIAS_IN = { iw: "he", tl: "fil", zh: "zh-CN", nb: "no", jw: "jv" }, ALIAS_OUT = { fil: "tl", he: "iw" };
+const formulaCode = (c) => ALIAS_OUT[c] || c;
+const OUTPUT_COL = /\s\[([A-Za-z]{2,3}(?:-[A-Za-z]{2,4})?)\]\s*$/;
+const KEY = "transshield.googleClientId";
+const S = { sheets: [], cfg: [], active: 0, source: null, output: null, prot: { html:1, braces:1, printf:1, urls:1, codes:1 }, token: null, running: false, jobColumnMap: null };
+
+/* ---------- helpers ---------- */
+const colLetter = (i) => { let s = ""; i += 1; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const html = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const width = (rows) => rows.reduce((m, r) => Math.max(m, r.length), 0);
+function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+
+function pattern(o, terms = []) {
+  const p = [];
+  const t = [...new Set(terms.map((x) => x.trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (t.length) p.push(t.map((x) => (/^\w/.test(x) && /\w$/.test(x) ? `\\b${esc(x)}\\b` : esc(x))).join("|"));
+  if (o.urls) p.push(String.raw`https?:\/\/[^\s<>"]+|[\w.+-]+@[\w-]+\.[\w.]+`);
+  if (o.html) p.push(String.raw`<\/?[a-zA-Z][^<>]*>|&[a-zA-Z#0-9]+;`);
+  if (o.braces) p.push(String.raw`\{\{[^{}]*\}\}|\{[^{}\s]*\}|\$\{[^{}]*\}|\[\[[^\]]*\]\]|%[A-Za-z_][\w]*%`);
+  if (o.printf) p.push(String.raw`%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifuxXeEgGcp@]|\\[ntr]`);
+  if (o.codes) p.push(String.raw`\b[A-Z]{2,}[-_][A-Z0-9_-]+\b|\b[A-Z0-9]*\d[A-Z0-9]*-[A-Z0-9-]+\b`);
+  return p.length ? new RegExp(p.join("|"), "gu") : null;
+}
+function protect(text, o, terms) { const base = pattern(o, terms), tokens = [], re = new RegExp((base ? base.source + "|" : "") + String.raw`\[\d+\]`, "gu"); return { text: text.replace(re, (m) => (tokens.push(m), `[${tokens.length - 1}]`)), tokens }; }
+const ZEROS = [0x30,0x660,0x6F0,0x966,0x9E6,0xA66,0xAE6,0xB66,0xBE6,0xC66,0xCE6,0xD66,0xE50,0x1040,0x17E0,0xFF10];
+const asciiDigits = (s) => [...s].map((ch) => { const cp = ch.codePointAt(0), z = ZEROS.find((b) => cp >= b && cp <= b + 9); return z == null ? ch : String(cp - z); }).join("");
+function restore(text, tokens) { return tokens.length ? text.replace(/[[［【]\s*(\p{Nd}+)\s*[\]］】]/gu, (m, n) => tokens[+asciiDigits(n)] ?? m) : text; }
+function shouldSkip(v) {
+  const s = v.trim(); if (!s || s.startsWith("=")) return true;
+  if (/^[\d\s.,:%$€£¥₹+\-/()]+$/.test(s)) return true;
+  if (/^[A-Z0-9_\-.]+$/.test(s) && !/[A-Z]{3,}\s/.test(s) && s.length < 25 && /[\d_]/.test(s)) return true;
+  return /^(https?:\/\/|www\.)\S+$/i.test(s);
+}
+function detectTerms(texts, o) {
+  const f = new Map(), re = pattern(o), brand = /\b(?:[A-Z]{2,}[A-Z0-9]*|[A-Z][a-z]+[A-Z][A-Za-z0-9]*|[A-Za-z]+\d+[A-Za-z0-9]*)\b/g;
+  for (const t of texts) { if (!t || shouldSkip(t)) continue; for (const m of [...(re ? t.match(re) || [] : []), ...(t.match(brand) || [])]) f.set(m, (f.get(m) || 0) + 1); }
+  return [...f.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map((e) => e[0]);
+}
+function parseLangs(text) {
+  const codes = [], bad = [];
+  for (const raw of text.split(/[,;\n]+/)) {
+    const t = raw.trim(); if (!t) continue;
+    const hit = LANGS.find(([c, n]) => c !== "auto" && (c.toLowerCase() === t.toLowerCase() || n.toLowerCase() === t.toLowerCase()));
+    const low = t.toLowerCase(), code = hit ? hit[0] : SUPPORTED.find((c) => c.toLowerCase() === low) || ALIAS_IN[low] || null;
+    if (code) { if (!codes.includes(code)) codes.push(code); } else bad.push(t);
+  }
+  return { codes, bad };
+}
+const targets = () => parseLangs($("langs").value).codes;
+const terms = () => $("terms").value.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean);
+
+/* ---------- Google ---------- */
+function signIn() {
+  const cid = localStorage.getItem(KEY);
+  if (!cid) { openSetup(); return Promise.reject(new Error("Add your Google Client ID first.")); }
+  if (S.token && S.token.exp > Date.now()) return Promise.resolve(S.token.value);
+  return new Promise((res, rej) => {
+    if (!window.google?.accounts?.oauth2) return rej(new Error(window.googleIdentityLoadError
+      ? "Google sign-in is unavailable offline. You can still browse saved jobs and download cached workbooks; reconnect to sign in or translate."
+      : "Google sign-in is still loading — try again."));
+    google.accounts.oauth2.initTokenClient({
+      client_id: cid, scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+      callback: (r) => { if (r.error || !r.access_token) return rej(new Error(r.error_description || r.error || "Sign-in failed")); S.token = { value: r.access_token, exp: Date.now() + (r.expires_in || 3600) * 1000 - 60000 }; $("signBtn").textContent = "Sign out"; res(r.access_token); },
+      error_callback: (e) => rej(new Error(e.type === "popup_failed_to_open" ? "Safari blocked the Google sign-in popup. Tap Sign in with Google directly; if it still fails, allow pop-ups for this site or open the page in Safari." : e.message || e.type || "Sign-in window closed")),
+    }).requestAccessToken({ prompt: "" });
+  });
+}
+async function api(url, init = {}) {
+  const t = await signIn();
+  const r = await fetch(url, { ...init, headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json; charset=utf-8", ...(init.headers || {}) } });
+  if (!r.ok) { const b = await r.text(); let m = b; try { m = JSON.parse(b).error?.message || b; } catch {} throw new Error(`Google ${r.status}: ${m}`); }
+  return r.status === 204 ? undefined : r.json();
+}
+const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
+const q = (n) => `'${n.replace(/'/g, "''")}'`;
+async function writeValues(id, data, input) { for (let i = 0; i < data.length; i += 50) await api(`${SHEETS}/${id}/values:batchUpdate`, { method: "POST", body: JSON.stringify({ valueInputOption: input, data: data.slice(i, i + 50) }) }); }
+async function readValues(id, range) { return (await api(`${SHEETS}/${id}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE`)).values || []; }
+const createSS = (title, names) => api(SHEETS, { method: "POST", body: JSON.stringify({ properties: { title }, sheets: names.map((t) => ({ properties: { title: t.slice(0, 100) } })) }) });
+const delFile = (id) => api(`https://www.googleapis.com/drive/v3/files/${id}`, { method: "DELETE" }).catch(() => {});
+
+const PREVIEW_ROWS = 300;
+function selectableColumns(si) {
+  const sheet = S.sheets[si], cfg = S.cfg[si];
+  if (!sheet || !cfg) return [];
+  const mapped = new Set(Object.entries(S.jobColumnMap || {}).filter(([k]) => k.startsWith(`${si}:`)).map(([, i]) => Number(i)));
+  return [...Array(width(sheet.rows)).keys()].filter((c) => !(cfg.header && OUTPUT_COL.test(sheet.rows[0]?.[c] || "")) && !mapped.has(c));
+}
+function sheetFromRows(rows) {
+  const aoa = rows.map((r) => r.map((c) => { const v = String(c ?? "").normalize("NFC"); return /^-?(0|[1-9]\d{0,14})(\.\d+)?$/.test(v) && String(Number(v)) === v ? Number(v) : v; }));
+  const ws = XLSX.utils.aoa_to_sheet(aoa), w = [];
+  rows.forEach((r) => r.forEach((c, i) => { const len = String(c ?? "").split("\n").reduce((m, l) => Math.max(m, l.length), 0); w[i] = Math.max(w[i] || 8, Math.min(60, len + 2)); }));
+  ws["!cols"] = Array.from(w, (wch) => ({ wch: wch || 8 }));
+  return ws;
+}
+function safeSheetName(name, used) {
+  const b = String(name || "Sheet").replace(/[\\\/?*\[\]:]/g, "_").replace(/^'+|'+$/g, "").slice(0, 31) || "Sheet";
+  let n = b, i = 2;
+  while (used.has(n.toLowerCase())) n = b.slice(0, 31 - String(i).length - 1) + "_" + i++;
+  used.add(n.toLowerCase()); return n;
+}
+async function ensureGrid(id, needs) {
+  const meta = await api(`${SHEETS}/${id}?fields=sheets.properties(sheetId,title,gridProperties)`), requests = [];
+  for (const n of needs) {
+    const p = meta.sheets.find((x) => x.properties.title === n.title)?.properties; if (!p) continue;
+    const g = p.gridProperties || {};
+    if (n.cols > (g.columnCount || 0)) requests.push({ appendDimension: { sheetId: p.sheetId, dimension: "COLUMNS", length: n.cols - g.columnCount } });
+    if (n.rows > (g.rowCount || 0)) requests.push({ appendDimension: { sheetId: p.sheetId, dimension: "ROWS", length: n.rows - g.rowCount } });
+  }
+  if (requests.length) await api(`${SHEETS}/${id}:batchUpdate`, { method: "POST", body: JSON.stringify({ requests }) });
+}
+/* ---------- loading ---------- */
+async function parseFile(file) {
+  await window.XLSXReady;
+  const buf = await file.arrayBuffer();
+  const wb = /\.(csv|tsv|txt)$/i.test(file.name)
+    ? XLSX.read(new TextDecoder("utf-8").decode(buf).replace(/^\uFEFF/, ""), { type: "string", raw: true })
+    : XLSX.read(buf, { type: "array", codepage: 65001 });
+  return wb.SheetNames.map((name) => ({ name, rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "", raw: false, blankrows: true }).map((r) => Array.from(r, (c) => (c == null ? "" : String(c).normalize("NFC")))) }));
+}
+function guessCols(s) {
+  const sample = s.rows.slice(1, 30), w = width(s.rows), cols = [];
+  for (let c = 0; c < w; c++) {
+    if (OUTPUT_COL.test(s.rows[0]?.[c] || "")) continue;
+    const texty = sample.filter((r) => /[^\d\s.,:%$\-/]{3,}/.test(r[c] || "") && /\s/.test((r[c] || "").trim())).length;
+    if (texty >= Math.max(1, sample.length * 0.3)) cols.push(c);
+  }
+  return cols;
+}
+function loadSheets(sheets, source) {
+  Object.assign(S, { sheets, source, active: 0, output: null, cfg: sheets.map((s) => ({ enabled: s.rows.length > 0, header: true, cols: guessCols(s) })) });
+  $("srcInfo").innerHTML = `${source.kind === "file" ? "File" : "Google Sheet"}: <b>${html(source.kind === "file" ? source.name : source.title)}</b>`;
+  render();
+}
+$("drop").onclick = () => $("file").click();
+$("drop").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } };
+$("drop").ondragover = (e) => { e.preventDefault(); $("drop").classList.add("over"); };
+$("drop").ondragleave = () => $("drop").classList.remove("over");
+$("drop").ondrop = (e) => { e.preventDefault(); $("drop").classList.remove("over"); onFile(e.dataTransfer.files[0]); };
+$("file").onchange = (e) => onFile(e.target.files[0]);
+async function onFile(f) { if (!f) return; try { if (!/\.(xlsx|xlsm|xls|csv|tsv|ods)$/i.test(f.name)) throw new Error("Unsupported file type. Use .xlsx, .xls, .csv or .ods."); const s = await parseFile(f); if (!s.some((x) => x.rows.length)) throw new Error("No data found."); loadSheets(s, { kind: "file", name: f.name }); } catch (e) { alert(e.message); } $("file").value = ""; }
+$("linkBtn").onclick = async () => {
+  const m = $("link").value.trim().match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); if (!m) return alert("Paste a full Google Sheets link.");
+  try {
+    const id = m[1], meta = await api(`${SHEETS}/${id}?fields=properties.title,sheets.properties(title,sheetId)`);
+    const vals = await api(`${SHEETS}/${id}/values:batchGet?${meta.sheets.map((s) => "ranges=" + encodeURIComponent(q(s.properties.title))).join("&")}&valueRenderOption=FORMATTED_VALUE`);
+    loadSheets(meta.sheets.map((s, i) => ({ name: s.properties.title, rows: (vals.valueRanges[i]?.values || []).map((r) => r.map((c) => String(c ?? ""))) })), { kind: "gsheet", id, title: meta.properties.title });
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- plan ---------- */
+function buildPlan() {
+  const jobs = [], tg = targets();
+  const layouts = S.sheets.map((s, si) => {
+    const c = S.cfg[si], w = width(s.rows), outs = [];
+    if (!c.enabled || !c.cols.length || !tg.length) return { w, outs };
+    const hdr = s.rows[0] || []; let next = w;
+    for (const col of c.cols) for (const lang of tg) {
+      const name = `${(c.header && hdr[col]) || colLetter(col)} [${lang}]`;
+      const found = c.header ? hdr.findIndex((h) => (h || "").trim() === name) : -1;
+      const mapped = S.jobColumnMap?.[`${si}:${col}:${lang}`];
+      outs.push({ src: col, lang, idx: mapped ?? (found >= 0 ? found : next++), name, existing: found >= 0 });
+    }
+    for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const o of outs) {
+      const text = s.rows[r]?.[o.src] || "", have = (s.rows[r]?.[o.idx] || "").trim();
+      if (text.trim() && !have) jobs.push({ key: `${si}:${r}:${o.idx}`, text, target: o.lang });
+    }
+    return { w, outs };
+  });
+  return { jobs, layouts };
+}
+
+/* ---------- render ---------- */
+function render() {
+  const has = S.sheets.length;
+  $("empty").classList.toggle("hidden", !!has); $("work").classList.toggle("hidden", !has); $("runPanel").classList.toggle("hidden", !has);
+  if (!has) return;
+  $("tabs").innerHTML = S.sheets.map((s, i) => `<button data-tab="${i}" class="${i === S.active ? "on" : ""}">${S.cfg[i].enabled ? "●" : "○"} ${html(s.name)}</button>`).join("");
+  const c = S.cfg[S.active], orig = S.sheets[S.active], view = (S.output || S.sheets)[S.active];
+  const ow = width(orig.rows), vw = width(view.rows);
+  const all = selectableColumns(S.active);
+  const allOn = all.length && all.every((k) => c.cols.includes(k));
+  $("bar").innerHTML = `<label><input type="checkbox" data-k="enabled" ${c.enabled ? "checked" : ""}> Translate this sheet</label>
+    <label><input type="checkbox" data-k="header" ${c.header ? "checked" : ""}> First row is header</label>
+    ${S.output ? "" : `<label><input type="checkbox" id="allCols" ${allOn ? "checked" : ""}> <b>Select / deselect all columns</b></label>`}
+    <span class="small">${c.cols.length} column(s) selected</span>`;
+  const ac = $("allCols"); if (ac) { ac.indeterminate = !allOn && c.cols.length > 0; ac.onchange = () => { c.cols = allOn ? [] : all; render(); }; }
+  let h = `<thead><tr><th>#</th>`;
+  for (let k = 0; k < vw; k++) { const isNew = k >= ow, sel = c.cols.includes(k); h += `<th class="${isNew ? "new" : sel ? "sel" : ""}">${!isNew && !S.output ? `<input type="checkbox" data-col="${k}" aria-label="Translate column ${colLetter(k)}" ${sel ? "checked" : ""}> ` : ""}${colLetter(k)}</th>`; }
+  h += `</tr></thead><tbody>`;
+  const parts = [];
+  view.rows.slice(0, PREVIEW_ROWS).forEach((row, r) => {
+    let tr = `<tr${r === 0 && c.header ? ' style="font-weight:600"' : ""}><td>${r + 1}</td>`;
+    for (let k = 0; k < vw; k++) tr += `<td class="${k >= ow ? "new" : c.cols.includes(k) ? "sel" : ""}">${html(row[k])}</td>`;
+    parts.push(tr + "</tr>");
+  });
+  $("tbl").innerHTML = h + parts.join("") + "</tbody>";
+  $("rowsInfo").textContent = view.rows.length > PREVIEW_ROWS ? `Previewing first ${PREVIEW_ROWS} of ${view.rows.length.toLocaleString()} rows (all rows are translated and exported).` : `Showing all ${view.rows.length.toLocaleString()} rows.`;
+  const { jobs, layouts } = buildPlan(), reused = layouts.reduce((n, l) => n + l.outs.filter((o) => o.existing).length, 0);
+  $("summary").innerHTML = `<b>${jobs.length.toLocaleString()}</b> cells to translate into <b>${targets().length}</b> language(s)${reused ? `<div class="small">Smart delta: ${reused} existing language column(s) reused — only blanks queued.</div>` : ""}`;
+  $("runBtn").disabled = S.running || !jobs.length;
+}
+$("tabs").onclick = (e) => { const b = e.target.closest("[data-tab]"); if (b) { S.active = +b.dataset.tab; render(); } };
+$("bar").onchange = (e) => { const k = e.target.dataset.k; if (k) { S.cfg[S.active][k] = e.target.checked; render(); } };
+$("tbl").onchange = (e) => { const col = e.target.dataset.col; if (col == null) return; const c = S.cfg[S.active], n = +col; c.cols = c.cols.includes(n) ? c.cols.filter((x) => x !== n) : [...c.cols, n].sort((a, b) => a - b); render(); };
+
+/* ---------- run ---------- */
+function log(m, p) { const l = $("log"); l.insertAdjacentHTML("beforeend", `<div>› ${html(m)}</div>`); l.scrollTop = l.scrollHeight; if (p != null) $("pbar").value = p; }
+function showLink(u) { const a = $("openLink"); a.href = u; a.classList.remove("hidden"); }
+$("saveBtn").onclick = async () => {
+  try {
+    const ss = await createSS(baseName(), S.output.map((s) => s.name));
+    await ensureGrid(ss.spreadsheetId, S.output.map((s, i) => ({ title: ss.sheets[i]?.properties.title || s.name, rows: s.rows.length, cols: width(s.rows) })));
+    await writeValues(ss.spreadsheetId, S.output.map((s, i) => ({ range: `${q(ss.sheets[i]?.properties.title || s.name)}!A1`, values: s.rows })).filter((d) => d.values.length), "RAW");
+    showLink(ss.spreadsheetUrl); $("saveBtn").classList.add("hidden");
+  } catch (e) { alert(e.message); }
+};
+
+/* ---------- controls ---------- */
+$("src").innerHTML = LANGS.map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
+$("prot").innerHTML = PROT.map(([k, l, ex]) => `<label class="row"><span>${l} <span class="small">${html(ex)}</span></span><input type="checkbox" data-p="${k}" checked></label>`).join("");
+$("prot").onchange = (e) => { S.prot[e.target.dataset.p] = e.target.checked; };
+function onLangs() { const { codes, bad } = parseLangs($("langs").value); $("langChips").innerHTML = codes.map((c) => `<span>${c}</span>`).join(""); $("langBad").textContent = bad.length ? "Not recognised: " + bad.join(", ") : ""; autoGrow($("langs")); if (S.sheets.length) render(); }
+$("langs").oninput = onLangs; $("terms").oninput = () => autoGrow($("terms"));
+$("scanBtn").onclick = () => {
+  const texts = []; S.sheets.forEach((s, si) => { const c = S.cfg[si]; if (!c.enabled) return; for (let r = c.header ? 1 : 0; r < s.rows.length; r++) for (const col of c.cols) texts.push(s.rows[r]?.[col] || ""); });
+  $("terms").value = [...new Set([...terms(), ...detectTerms(texts, S.prot)])].join(", "); autoGrow($("terms"));
+};
+function openSetup() { $("cid").value = localStorage.getItem(KEY) || ""; $("origin").textContent = location.origin; $("setup").showModal(); }
+$("setupBtn").onclick = openSetup; $("cidClose").onclick = () => $("setup").close();
+$("cidSave").onclick = () => { const v = $("cid").value.trim(); v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); S.token = null; $("signBtn").textContent = "Sign in with Google"; $("setup").close(); };
+$("signBtn").onclick = () => {
+  if (S.token) {
+    const token = S.token.value; S.token = null; $("signBtn").textContent = "Sign in with Google";
+    try { window.google?.accounts?.oauth2?.revoke?.(token); }
+    catch (error) { console.warn("Could not revoke the Google token from this offline session:", error); }
+  } else signIn().catch((e) => alert(e.message));
+};
+if (location.protocol === "file:") document.querySelector(".sub").textContent += " · Google sign-in needs this file served over http(s)";
+onLangs();
+</script>
+<script>
+"use strict";
+/* Resumable job engine: IndexedDB, paced micro-batches, recovery and exports. */
+(() => {
+  const DB_NAME = "TransShieldDB", DB_VERSION = 2, TTL = 7 * 86400000;
+  const FORMULA_BATCH = 180, ACTIVE_LIMIT = 240000, COOLDOWN_MS = 150000;
+  const RETRIES = 4, BACKOFF = [4000, 8000, 16000, 32000];
+  const LOCK_LEASE_MS = 120000, LOCK_REFRESH_MS = 20000;
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const copy = (v) => typeof structuredClone === "function" ? structuredClone(v) : JSON.parse(JSON.stringify(v));
+  const cellCacheKey = (cell) => JSON.stringify([cell.sheetName, cell.rowIdx, cell.sourceCol, cell.langCode]);
+  const tabId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  let dbPromise, recentDialog, workerPromise, pauseRequested = false, stopRequested = false;
+  let resumeBanner, hud, rulesArea, autoJob = null, globalColumnBar;
+  let storageNotice, fingerprintNotice, notifyStatus;
+  S.cellCache = new Map(); S.currentJob = null; S.timingActive = false; S.hudCurrent = "";
+  S.pacedGoogle = false; S.lastGoogleRequestAt = 0; S.activeProcessingMs = 0; S.retryFailedOnly = false;
+
+  const injectUI = () => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #recentBtn{margin-left:4px}.resume-banner{position:sticky;top:0;z-index:5;margin:12px auto 0;max-width:1160px;padding:12px 16px;background:#332812;border:1px solid #8b641c;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      .resume-banner[hidden]{display:none}.resume-banner p{margin:0}.job-status{display:inline-block;padding:2px 7px;border-radius:999px;background:#30363d;color:#e6edf3;font-size:11px}
+      .job-status.completed{background:#16351f;color:#3fb950}.job-status.running{background:#3b2e13;color:#f5a524}.job-status.failed,.job-status.interrupted{background:#3d2020;color:#f85149}
+      #recentDialog{width:min(900px,95vw);max-width:900px}#recentDialog .tbl{max-height:60vh}#recentDialog td{min-width:0}
+      #jobHud{margin-top:14px;padding:12px;background:var(--bg);border:1px solid var(--bd);border-radius:10px}
+      #jobHud .hud-top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+      #jobHud .hud-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+      #jobHud .hud-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:6px;margin:10px 0}
+      #hudTime{margin-top:8px;padding:8px 10px;background:var(--card);border-radius:7px;font-weight:600}
+      #storageNotice,#fingerprintNotice{display:block;margin:8px 0 0}
+      #jobHud .hud-stat{background:var(--card);padding:7px 9px;border-radius:7px}.phonetic-rule{margin-top:10px}
+      #phoneticRules{min-height:54px}
+      @media(max-width:600px){.resume-banner{margin:8px;padding:10px}#recentDialog{padding:12px}}
+    `;
+    document.head.append(style);
+    const recentBtn = document.createElement("button");
+    recentBtn.type = "button"; recentBtn.id = "recentBtn"; recentBtn.className = "sec";
+    recentBtn.textContent = "Recent Jobs (7 Days)";
+    $("setupBtn").parentElement.append(recentBtn);
+    recentBtn.onclick = showRecentJobs;
+    storageNotice = document.createElement("p");
+    storageNotice.id = "storageNotice"; storageNotice.className = "small";
+    storageNotice.textContent = "Checking browser storage protection…";
+    $("srcInfo").after(storageNotice);
+    fingerprintNotice = document.createElement("p");
+    fingerprintNotice.id = "fingerprintNotice"; fingerprintNotice.className = "small err hidden";
+    storageNotice.after(fingerprintNotice);
+    globalColumnBar = document.createElement("div");
+    globalColumnBar.id = "globalColumnBar"; globalColumnBar.className = "bar global-column-bar hidden";
+    globalColumnBar.innerHTML = `<label for="globalAllCols"><input type="checkbox" id="globalAllCols"> <b>Select / deselect all columns across all sheets</b></label><span class="small" id="globalColumnSummary"></span>`;
+    $("tabs").after(globalColumnBar);
+    $("globalAllCols").onchange = () => {
+      const all = S.cfg.map((c, si) => selectableColumns(si));
+      const total = all.reduce((n, cols) => n + cols.length, 0);
+      const selected = all.reduce((n, cols, si) => n + cols.filter((col) => S.cfg[si].cols.includes(col)).length, 0);
+      const clear = total > 0 && selected === total;
+      S.cfg.forEach((cfg, si) => { cfg.cols = clear ? [] : all[si]; });
+      render();
+    };
+    resumeBanner = document.createElement("div");
+    resumeBanner.id = "resumeBanner"; resumeBanner.className = "resume-banner"; resumeBanner.hidden = true;
+    document.querySelector("header").after(resumeBanner);
+    const panel = document.createElement("div");
+    panel.id = "jobHud"; panel.className = "hidden";
+    panel.innerHTML = `<div class="hud-top"><div><b id="hudTitle">Translation job</b><div class="small" id="hudDetail"></div></div><div class="small" id="hudState"></div></div>
+      <progress id="hudProgress" max="100" value="0" style="margin-top:10px"></progress>
+      <div id="hudTime" title="Elapsed time includes pacing, cooldowns, and pauses. ETA is based on the run's average completed-cell rate."></div>
+      <div class="hud-stats" id="hudStats"></div><div class="small" id="hudCurrent"></div>
+      <div class="hud-actions"><button class="sec" id="pauseJobBtn">Pause</button><button id="resumeJobBtn" class="hidden">Resume</button><button class="sec" id="stopJobBtn">Stop &amp; Keep</button><button class="sec" id="partialJobBtn">Download Partial .xlsx</button><button class="sec" id="resetJobBtn">Reset Job</button><button class="sec" id="notifyBtn">Enable notifications</button><span class="small" id="notifyStatus"></span></div>`;
+    $("runPanel").append(panel); hud = panel;
+    $("pauseJobBtn").onclick = () => { pauseRequested = true; $("pauseJobBtn").disabled = true; $("hudState").textContent = "Pausing after this micro-batch…"; };
+    $("resumeJobBtn").onclick = () => {
+      if (!S.currentJob) return;
+      authorizeBeforeJob().then((ok) => { if (ok) startJob(S.currentJob); });
+    };
+    $("stopJobBtn").onclick = () => { stopRequested = true; pauseRequested = true; $("stopJobBtn").disabled = true; $("hudState").textContent = "Stopping after this micro-batch and keeping saved work…"; };
+    $("partialJobBtn").onclick = () => S.currentJob?.status === "completed"
+      ? downloadSheets(S.output || S.sheets, currentBaseName())
+      : downloadCurrentPartial();
+    notifyStatus = $("notifyStatus");
+    $("notifyBtn").onclick = enableNotifications;
+    refreshNotificationStatus();
+    $("resetJobBtn").onclick = resetCurrentJob;
+    $("runBtn").onclick = () => {
+      // Open GIS synchronously from this tap, before IndexedDB or job setup can
+      // consume Safari's transient user activation and cause popup_failed_to_open.
+      authorizeBeforeJob().then((ok) => { if (ok) startJob(); });
+    };
+    $("dlBtn").onclick = () => S.currentJob && S.currentJob.status !== "completed"
+      ? downloadCurrentPartial()
+      : downloadSheets(S.output || S.sheets, currentBaseName());
+    recentDialog = document.createElement("dialog");
+    recentDialog.id = "recentDialog";
+    recentDialog.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:8px 0">Recent Jobs (7 Days)</h3><button class="sec" id="closeRecent">Close</button></div>
+      <p class="small">Jobs and cell results are stored in this browser and expire after seven days. ${"Browser storage may still be cleared if persistent storage is unavailable."}</p>
+      <div class="tbl"><table><thead><tr><th>File / Sheets</th><th>Last active</th><th>Progress</th><th>Status</th><th>Elapsed / ETA</th><th>Actions</th></tr></thead><tbody id="recentRows"></tbody></table></div>`;
+    document.body.append(recentDialog);
+    $("closeRecent").onclick = () => recentDialog.close();
+    recentDialog.onclick = (e) => { if (e.target === recentDialog) recentDialog.close(); };
+    recentDialog.querySelector("tbody").onclick = handleRecentAction;
+
+    const panelSection = document.createElement("div");
+    panelSection.className = "panel phonetic-rule";
+    panelSection.innerHTML = `<h2>4 · Phonetic replacements</h2><textarea id="phoneticRules" rows="2" placeholder="One replacement per line, e.g. Gelato => Jilato"></textarea><p class="small">Applied after token protection and before Google Translate. Use one <code>from =&gt; to</code> pair per line.</p>`;
+    $("prot").closest(".panel").after(panelSection);
+    rulesArea = $("phoneticRules");
+
+    const auth = document.createElement("dialog");
+    auth.id = "authDialog";
+    auth.innerHTML = `<h3 style="margin-top:0">Google authorization needs attention</h3><p id="authMessage">The saved job is safe. Check your Google Client ID, account access, or requested Sheets/Drive scopes, then sign in again.</p><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="sec" id="authSetup">Google setup</button><button class="sec" id="authClose">Close</button><button id="authSignin">Sign in again</button></div>`;
+    document.body.append(auth);
+    $("authSetup").onclick = () => { auth.close(); openSetup(); };
+    $("authClose").onclick = () => auth.close();
+    $("authSignin").onclick = () => signIn().then(() => auth.close()).catch((e) => $("authMessage").textContent = e.message);
+    rulesArea.addEventListener("input", () => autoGrow(rulesArea));
+    setInterval(() => { if (S.currentJob) paintHud(S.currentJob); }, 1000);
+  };
+
+  function syncGlobalColumns() {
+    const box = $("globalAllCols");
+    if (!box) return;
+    const all = S.cfg.map((_, si) => selectableColumns(si));
+    const total = all.reduce((n, cols) => n + cols.length, 0);
+    const selected = all.reduce((n, cols, si) => n + cols.filter((col) => S.cfg[si].cols.includes(col)).length, 0);
+    box.checked = total > 0 && selected === total;
+    box.indeterminate = selected > 0 && selected < total;
+    box.disabled = total === 0;
+    globalColumnBar.classList.toggle("hidden", S.sheets.length === 0);
+    $("globalColumnSummary").textContent = `${selected.toLocaleString()} / ${total.toLocaleString()} columns selected`;
+  }
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      if (!("indexedDB" in window)) return reject(new Error("IndexedDB is unavailable in this browser."));
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = (event) => {
+        const d = req.result;
+        if (!d.objectStoreNames.contains("jobs")) d.createObjectStore("jobs", { keyPath: "id" });
+        if (event.oldVersion < 2 && d.objectStoreNames.contains("cells")) {
+          const oldCells = req.transaction.objectStore("cells"), readOld = oldCells.getAll();
+          readOld.onsuccess = () => {
+            const previous = readOld.result || [];
+            d.deleteObjectStore("cells");
+            const store = d.createObjectStore("cells", { keyPath: ["jobId", "sheetName", "rowIdx", "sourceCol", "langCode"] });
+            store.createIndex("jobId", "jobId", { unique: false });
+            for (const cell of previous) store.put({ ...cell, sourceCol: Number.isInteger(cell.sourceCol) ? cell.sourceCol : 0 });
+          };
+          readOld.onerror = () => console.error("Could not migrate saved translation cells:", readOld.error);
+        } else if (!d.objectStoreNames.contains("cells")) {
+          const store = d.createObjectStore("cells", { keyPath: ["jobId", "sheetName", "rowIdx", "sourceCol", "langCode"] });
+          store.createIndex("jobId", "jobId", { unique: false });
+        }
+        if (!d.objectStoreNames.contains("locks")) d.createObjectStore("locks", { keyPath: "id" });
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error("Could not open IndexedDB."));
+      req.onblocked = () => reject(new Error("Close other TransShield tabs to upgrade local storage."));
+    });
+    return dbPromise;
+  }
+  const requestValue = (req) => new Promise((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
+  const transactionDone = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error("IndexedDB transaction aborted.")); });
+  async function getJob(id) { const d = await openDB(); return requestValue(d.transaction("jobs").objectStore("jobs").get(id)); }
+  async function getAllJobs() { const d = await openDB(); return requestValue(d.transaction("jobs").objectStore("jobs").getAll()); }
+  async function getCells(id) { const d = await openDB(); return requestValue(d.transaction("cells").objectStore("cells").index("jobId").getAll(id)); }
+  async function saveJob(job, records = []) {
+    const d = await openDB(), tx = d.transaction(["jobs", "cells"], "readwrite");
+    tx.objectStore("jobs").put(job);
+    for (const row of records) tx.objectStore("cells").put(row);
+    await transactionDone(tx);
+    if (records.length) for (const row of records) S.cellCache.set(cellCacheKey(row), row);
+  }
+  async function deleteJob(id) {
+    const d = await openDB(), tx = d.transaction(["jobs", "cells"], "readwrite");
+    tx.objectStore("jobs").delete(id);
+    const req = tx.objectStore("cells").index("jobId").openCursor(IDBKeyRange.only(id));
+    req.onsuccess = () => { const cursor = req.result; if (cursor) { cursor.delete(); cursor.continue(); } };
+    await transactionDone(tx);
+  }
+  async function pruneExpired() {
+    const jobs = await getAllJobs(), now = Date.now();
+    for (const job of jobs) {
+      if (job.expiresAt < now) await deleteJob(job.id);
+      else if (job.status === "running") { const free = await acquireRunLock(job.id); if (free) { try { job.status = "interrupted"; job.lastActiveAt = now; await saveJob(job); } finally { await free(); } } }
+    }
+  }
+  function parsePhoneticRules(text) {
+    return String(text || "").split(/\n+/).map((line) => {
+      const m = line.match(/^\s*(.*?)\s*=>\s*(.*?)\s*$/);
+      return m && m[1] && m[2] ? { from: m[1], to: m[2] } : null;
+    }).filter(Boolean);
+  }
+  function legacyFingerprintSeed(source, sheets, langs) {
+    return JSON.stringify([source?.name || source?.title || "workbook", sheets.map((s) => s.name), sheets.reduce((n, s) => n + s.rows.length, 0), langs]);
+  }
+  async function digestSeed(seed) {
+    if (globalThis.crypto?.subtle) {
+      const bytes = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(seed));
+      return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+    let h = 2166136261; for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    return `fallback-${(h >>> 0).toString(16)}`;
+  }
+  async function legacyFingerprint(source, sheets, langs) { return digestSeed(legacyFingerprintSeed(source, sheets, langs)); }
+  function currentJobSettings() {
+    return {
+      config: S.cfg.map((c) => ({ enabled: !!c.enabled, header: !!c.header, cols: [...c.cols].sort((a, b) => a - b) })),
+      protection: { ...S.prot },
+      terms: terms(),
+      phoneticRules: parsePhoneticRules(rulesArea.value)
+    };
+  }
+  async function fingerprint(source, sheets, langs) {
+    const settings = currentJobSettings();
+    let h1 = 2166136261, h2 = 0x9e3779b9, length = 0;
+    const feed = (value) => {
+      const text = String(value ?? "");
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        h1 = Math.imul(h1 ^ code, 16777619);
+        h2 = Math.imul(h2 ^ (code + (i & 255)), 0x85ebca6b);
+      }
+      h1 = Math.imul(h1 ^ 255, 16777619);
+      h2 = Math.imul(h2 ^ (text.length & 255), 0xc2b2ae35);
+      length += text.length + 1;
+    };
+    feed("transshield-input-v2");
+    feed(source?.kind); feed(source?.name || source?.title); feed(source?.id);
+    for (const sheet of sheets) {
+      feed(sheet.name); feed(sheet.rows.length);
+      for (const row of sheet.rows) {
+        feed(row.length);
+        for (const cell of row) feed(cell);
+      }
+    }
+    for (const lang of langs) feed(lang);
+    feed($("src").value);
+    feed(JSON.stringify(settings));
+    return `v2-${(h1 >>> 0).toString(16)}-${(h2 >>> 0).toString(16)}-${length.toString(36)}`;
+  }
+  function sameWorkbookData(a, b) {
+    return Array.isArray(a) && a.length === b.length && a.every((sheet, si) =>
+      sheet.name === b[si].name && sheet.rows.length === b[si].rows.length &&
+      sheet.rows.every((row, ri) => row.length === b[si].rows[ri].length && row.every((cell, ci) => cell === b[si].rows[ri][ci]))
+    );
+  }
+  function sameSavedSettings(job) {
+    const settings = currentJobSettings();
+    const savedConfig = (job.cfg || []).map((c) => ({ enabled: !!c.enabled, header: !!c.header, cols: [...(c.cols || [])].sort((a, b) => a - b) }));
+    return JSON.stringify(savedConfig) === JSON.stringify(settings.config) &&
+      JSON.stringify(job.protectedTerms || []) === JSON.stringify(settings.terms) &&
+      JSON.stringify(job.protectionOptions || { html:1, braces:1, printf:1, urls:1, codes:1 }) === JSON.stringify(settings.protection) &&
+      JSON.stringify(job.phoneticRules || []) === JSON.stringify(settings.phoneticRules);
+  }
+  function showFingerprintNotice(message = "") {
+    fingerprintNotice.textContent = message;
+    fingerprintNotice.classList.toggle("hidden", !message);
+  }
+  async function updateStorageProtection(request = false) {
+    const storage = navigator.storage;
+    if (!storage || (!storage.persisted && !storage.persist)) {
+      storageNotice.textContent = "Saved jobs stay in this browser for seven days, but this browser cannot protect them from storage eviction. Keep a copy of your source workbook.";
+      return false;
+    }
+    try {
+      let persistent = storage.persisted ? await storage.persisted() : false;
+      if (!persistent && request && storage.persist) persistent = await storage.persist();
+      storageNotice.textContent = persistent
+        ? "Persistent browser storage is enabled for saved jobs on this device. Keep your source workbook too."
+        : "The browser did not grant persistent storage; it may clear saved jobs under storage pressure. Keep a copy of your source workbook.";
+      return persistent;
+    } catch {
+      storageNotice.textContent = "Persistent storage could not be confirmed; the browser may clear saved jobs under storage pressure. Keep a copy of your source workbook.";
+      return false;
+    }
+  }
+  async function enableNotifications() {
+    if (!("Notification" in window)) {
+      notifyStatus.textContent = "Notifications are unavailable in this browser.";
+      return;
+    }
+    try {
+      const permission = Notification.permission === "default" ? await Notification.requestPermission() : Notification.permission;
+      if (permission === "granted") {
+        localStorage.setItem("transshield.notifications.enabled", "1");
+        notifyStatus.textContent = "Completion notifications enabled.";
+      } else {
+        localStorage.removeItem("transshield.notifications.enabled");
+        notifyStatus.textContent = permission === "denied" ? "Notifications are blocked in browser settings." : "No permission granted.";
+      }
+    } catch {
+      notifyStatus.textContent = "Could not enable notifications here.";
+    }
+  }
+  function sendBrowserNotification(title, body) {
+    try {
+      if (localStorage.getItem("transshield.notifications.enabled") !== "1" || !("Notification" in window) || Notification.permission !== "granted") return;
+      const notification = new Notification(title, { body, tag: "transshield-job" });
+      notification.onclick = () => { window.focus(); notification.close(); };
+    } catch (error) { console.warn("Could not send translation notification:", error); }
+  }
+  function refreshNotificationStatus() {
+    if (!notifyStatus) return;
+    try {
+      const enabled = localStorage.getItem("transshield.notifications.enabled") === "1";
+      notifyStatus.textContent = enabled && "Notification" in window && Notification.permission === "granted"
+        ? "Completion notifications enabled."
+        : "Notifications are opt-in.";
+    } catch { notifyStatus.textContent = "Notifications are opt-in."; }
+  }
+  function columnMapFrom(layouts) {
+    const map = {};
+    layouts.forEach((layout, si) => layout.outs.forEach((o) => { map[`${si}:${o.src}:${o.lang}`] = o.idx; }));
+    return map;
+  }
+  function columnNamesFrom(layouts) {
+    const map = {};
+    layouts.forEach((layout, si) => layout.outs.forEach((o) => { map[`${si}:${o.src}:${o.lang}`] = o.name; }));
+    return map;
+  }
+  async function createJob() {
+    const parsed = parseLangs($("langs").value);
+    if (!parsed.codes.length) throw new Error("Add at least one valid target language.");
+    const { jobs, layouts } = buildPlan();
+    if (!jobs.length) return null;
+    let id = await fingerprint(S.source, S.sheets, parsed.codes);
+    const previous = await getJob(id);
+    if (previous && !sameWorkbookData(previous.sourceSheets, S.sheets)) {
+      showFingerprintNotice("A saved job matched this file’s fingerprint but its source cells differ. A separate job will be created to protect the saved results.");
+      id = `${id}-collision-${Date.now().toString(36)}`;
+    }
+    const settings = currentJobSettings();
+    const job = {
+      id, sourceLang: $("src").value, sourceFileName: S.source.kind === "file" ? S.source.name : S.source.title,
+      source: copy(S.source), sourceSheets: copy(S.sheets), sheetNames: S.sheets.map((s) => s.name),
+      selectedColumns: S.cfg.map((c) => [...c.cols]), cfg: copy(S.cfg), targetLanguages: parsed.codes,
+      protectedTerms: terms(), protectionOptions: settings.protection, phoneticRules: settings.phoneticRules,
+      columnMap: columnMapFrom(layouts), columnNames: columnNamesFrom(layouts),
+      languageTotals: Object.fromEntries(parsed.codes.map((lang) => [lang, jobs.filter((item) => item.target === lang).length])),
+      totalCells: jobs.length, completedCells: 0, failedCells: 0, skippedCells: 0, windowProcessingMs: 0,
+      status: "idle", activeProcessingMs: 0, createdAt: Date.now(), lastActiveAt: Date.now(),
+      expiresAt: Date.now() + TTL, cooldownRemainingMs: 0, cooldownUntil: 0,
+      throughputSamples: [], failedByLanguage: {}
+    };
+    if (previous && previous.id === id) await deleteJob(id);
+    S.cellCache = new Map(); S.currentJob = job;
+    prepareOutput(job, []);
+    await saveJob(job);
+    return job;
+  }
+  function prepareOutput(job, cells) {
+    S.sheets = copy(job.sourceSheets); S.cfg = copy(job.cfg); S.source = copy(job.source);
+    S.jobColumnMap = copy(job.columnMap || {}); S.currentJob = job; S.output = null; S.active = 0;
+    S.prot = copy(job.protectionOptions || { html:1, braces:1, printf:1, urls:1, codes:1 });
+    document.querySelectorAll("#prot input[data-p]").forEach((input) => { input.checked = !!S.prot[input.dataset.p]; });
+    S.hudCurrent = ""; if (job.sourceLang) $("src").value = job.sourceLang;
+    S.cellCache = new Map(cells.map((c) => [cellCacheKey(c), c]));
+    $("langs").value = job.targetLanguages.join(", "); $("terms").value = (job.protectedTerms || []).join(", ");
+    rulesArea.value = (job.phoneticRules || []).map((r) => `${r.from} => ${r.to}`).join("\n");
+    onLangs(); autoGrow($("terms")); autoGrow(rulesArea);
+    for (let si = 0; si < S.sheets.length; si++) {
+      const rows = S.sheets[si].rows, cfg = S.cfg[si] || { header: true, cols: [] };
+      const entries = Object.entries(S.jobColumnMap).filter(([k]) => k.startsWith(`${si}:`));
+      for (const [key, idx] of entries) {
+        const [, src, lang] = key.split(":");
+        const name = job.columnNames?.[key] || `${cfg.header && rows[0]?.[+src] || colLetter(+src)} [${lang}]`;
+        for (const row of rows) while (row.length <= idx) row.push("");
+        if (cfg.header && rows[0]) rows[0][idx] = name;
+      }
+    }
+    for (const cell of cells) if (cell.status === "completed" || cell.status === "skipped") applyCell(cell, cell.value);
+    render(); $("jobHud").classList.remove("hidden"); paintHud(job);
+  }
+  async function applySavedValues(job) { const cells = await getCells(job.id); prepareOutput(job, cells); return cells; }
+  function applyCell(cell, value) {
+    const si = S.sheets.findIndex((s) => s.name === cell.sheetName);
+    if (si < 0) return;
+    const idx = S.jobColumnMap?.[`${si}:${cell.sourceCol}:${cell.langCode}`];
+    if (idx == null) return;
+    const rows = S.sheets[si].rows, row = rows[cell.rowIdx];
+    if (!row) return;
+    while (row.length <= idx) row.push("");
+    row[idx] = value ?? "";
+  }
+  function cellRecord(job, sheetName, rowIdx, sourceCol, langCode, status, value) {
+    return { jobId: job.id, sheetName, rowIdx, sourceCol, langCode, status, value: value ?? "", updatedAt: Date.now() };
+  }
+  async function commitRecords(job, records) {
+    for (const r of records) { if (r.status === "completed" || r.status === "skipped") applyCell(r, r.value); }
+    for (const r of records) S.cellCache.set(cellCacheKey(r), r);
+    const all = [...S.cellCache.values()];
+    job.completedCells = all.filter((c) => c.status === "completed").length;
+    job.failedCells = all.filter((c) => c.status === "failed").length;
+    job.skippedCells = all.filter((c) => c.status === "skipped").length;
+    job.failedByLanguage = Object.fromEntries((job.targetLanguages || []).map((lang) =>
+      [lang, all.filter((c) => c.status === "failed" && c.langCode === lang).length]
+    ).filter(([, count]) => count > 0));
+    job.lastActiveAt = Date.now();
+    await saveJob(job, records); paintHud(job);
+  }
+  function updateJobConfig(job) {
+    job.selectedColumns = S.cfg.map((c) => [...c.cols]); job.cfg = copy(S.cfg);
+    job.protectedTerms = terms(); job.protectionOptions = copy(S.prot); job.phoneticRules = parsePhoneticRules(rulesArea.value);
+    job.columnMap = copy(S.jobColumnMap || job.columnMap); job.columnNames = job.columnNames || {};
+  }
+  function statusLabel(status) {
+    return ({ completed: "Completed", paused: "Paused", cooldown: "Cooldown", interrupted: "Interrupted", running: "Running", idle: "Not started" })[status] || status;
+  }
+  function prettyTime(ms) { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`; }
+  function jobElapsedMs(job, now = Date.now()) {
+    const started = job.startedAt || job.createdAt || now;
+    return Math.max(0, (job.completedAt || now) - started);
+  }
+  function estimateRemainingMs(job, now = Date.now()) {
+    if (job.status === "completed") return 0;
+    if (job.status === "paused" || job.status === "interrupted") return null;
+    const finished = (job.completedCells || 0) + (job.skippedCells || 0);
+    const remaining = Math.max(0, (job.totalCells || 0) - finished);
+    if (!remaining) return 0;
+    const samples = (job.throughputSamples || []).slice(-8).filter((sample) => sample.cells > 0 && sample.ms > 0);
+    if (samples.length) {
+      const measuredCells = samples.reduce((sum, sample) => sum + sample.cells, 0);
+      const measuredMs = samples.reduce((sum, sample) => sum + sample.ms, 0);
+      if (measuredCells) return measuredMs * remaining / measuredCells;
+    }
+    if (!finished) return null;
+    return jobElapsedMs(job, now) * remaining / finished;
+  }
+  function addThroughputSample(job, records, startedAt) {
+    const cells = records.filter((record) => record.status === "completed" || record.status === "skipped").length;
+    const ms = Math.max(1, Date.now() - startedAt);
+    if (!cells) return;
+    job.throughputSamples = [...(job.throughputSamples || []), { cells, ms }].slice(-8);
+  }
+  function paintHud(job, current = null) {
+    if (!hud || !job) return;
+    if (current !== null) S.hudCurrent = current;
+    const finished = job.completedCells + job.skippedCells, total = job.totalCells || 0;
+    $("hudTitle").textContent = job.sourceFileName || "Translation job";
+    $("hudDetail").textContent = (job.sheetNames || []).join(", ");
+    const cooldownLeft = job.cooldownUntil ? Math.max(0, job.cooldownUntil - Date.now()) : (job.cooldownRemainingMs || 0);
+    $("hudState").textContent = statusLabel(job.status) + (job.status === "cooldown" ? ` · resumes in ${Math.ceil(cooldownLeft / 1000)}s` : "");
+    $("hudProgress").value = total ? Math.min(100, finished / total * 100) : 0;
+    const elapsed = jobElapsedMs(job), eta = estimateRemainingMs(job);
+    const etaLabel = job.status === "paused" || job.status === "interrupted"
+      ? "resume to estimate" : eta == null ? "estimating…" : `~${prettyTime(eta)} remaining`;
+    $("hudTime").textContent = job.status === "completed"
+      ? `Total elapsed: ${prettyTime(elapsed)}`
+      : `Elapsed: ${prettyTime(elapsed)} · ETA: ${etaLabel}`;
+    $("hudStats").innerHTML = `<div class="hud-stat"><b>${job.completedCells}</b><div class="small">Completed</div></div><div class="hud-stat"><b>${Math.max(0, total - finished - job.failedCells)}</b><div class="small">Pending</div></div><div class="hud-stat"><b>${job.failedCells}</b><div class="small">Failed</div></div><div class="hud-stat"><b>${job.skippedCells}</b><div class="small">Skipped</div></div><div class="hud-stat"><b>${prettyTime(job.activeProcessingMs || 0)}</b><div class="small">Total active time · ${prettyTime(job.windowProcessingMs || 0)} / 4m window</div></div>`;
+    $("hudCurrent").textContent = S.hudCurrent;
+    const isRunning = job.status === "running" || job.status === "cooldown";
+    $("pauseJobBtn").classList.toggle("hidden", !isRunning);
+    $("pauseJobBtn").disabled = pauseRequested;
+    $("resumeJobBtn").classList.toggle("hidden", isRunning || job.status === "completed");
+    $("stopJobBtn").classList.toggle("hidden", !isRunning);
+    $("partialJobBtn").classList.toggle("hidden", job.status === "completed");
+    $("resetJobBtn").classList.toggle("hidden", job.status === "completed");
+  }
+  function currentBaseName() {
+    if (!S.source) return "TransShield_partial";
+    return (S.source.kind === "file" ? S.source.name.replace(/\.[^.]+$/, "") : S.source.title) + "_" + targets().slice(0, 4).join("-");
+  }
+  function runSummaryRows(job, records) {
+    const completed = records.filter((cell) => cell.status === "completed").length;
+    const failed = records.filter((cell) => cell.status === "failed").length;
+    const skipped = records.filter((cell) => cell.status === "skipped").length;
+    const total = job?.totalCells ?? records.length;
+    const pending = Math.max(0, total - completed - failed - skipped);
+    const expectedForLanguage = (lang, langRecords) => {
+      if (job?.languageTotals?.[lang] != null) return job.languageTotals[lang];
+      if (!job?.sourceSheets || !job?.cfg || !job?.columnMap) return langRecords.length;
+      let count = 0;
+      job.sourceSheets.forEach((sheet, si) => {
+        const cfg = job.cfg[si] || {}, firstRow = cfg.header ? 1 : 0;
+        for (let rowIdx = firstRow; rowIdx < sheet.rows.length; rowIdx++) {
+          for (const sourceCol of cfg.cols || []) {
+            const outputCol = job.columnMap[`${si}:${sourceCol}:${lang}`];
+            if ((sheet.rows[rowIdx]?.[sourceCol] || "").trim() && !(outputCol == null ? "" : sheet.rows[rowIdx]?.[outputCol] || "").trim()) count++;
+          }
+        }
+      });
+      return count || langRecords.length;
+    };
+    const rows = [
+      ["TransShield run summary", ""],
+      ["Source", job?.sourceFileName || S.source?.name || S.source?.title || "Unknown"],
+      ["Status", job?.status || "Run data unavailable"],
+      ["Generated at (UTC)", new Date().toISOString()],
+      ["Started at", job?.startedAt ? new Date(job.startedAt).toISOString() : ""],
+      ["Completed at", job?.completedAt ? new Date(job.completedAt).toISOString() : ""],
+      ["Total cells", total],
+      ["Completed", job?.completedCells ?? completed],
+      ["Failed", job?.failedCells ?? failed],
+      ["Skipped", job?.skippedCells ?? skipped],
+      ["Pending", pending],
+      [],
+      ["Language", "Total", "Completed", "Failed", "Skipped", "Pending"]
+    ];
+    for (const lang of job?.targetLanguages || [...new Set(records.map((cell) => cell.langCode))]) {
+      const langRecords = records.filter((cell) => cell.langCode === lang);
+      const done = langRecords.filter((cell) => cell.status === "completed").length;
+      const errors = langRecords.filter((cell) => cell.status === "failed").length;
+      const skippedLang = langRecords.filter((cell) => cell.status === "skipped").length;
+      const langTotal = expectedForLanguage(lang, langRecords);
+      rows.push([lang, langTotal, done, errors, skippedLang, Math.max(0, langTotal - done - errors - skippedLang)]);
+    }
+    return rows;
+  }
+  function downloadSheets(sheets, filename, job = S.currentJob, records = [...S.cellCache.values()]) {
+    if (!window.XLSX) {
+      window.XLSXReady.then(() => downloadSheets(sheets, filename, job, records)).catch((error) => alert(error.message));
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    const existingNames = new Set();
+    for (const s of sheets || []) XLSX.utils.book_append_sheet(wb, sheetFromRows(s.rows), safeSheetName(s.name, existingNames));
+    let summaryName = "Run Summary", suffix = 2;
+    while (existingNames.has(summaryName.toLowerCase())) summaryName = `Run Summary ${suffix++}`;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(runSummaryRows(job, records)), summaryName.slice(0, 31));
+    XLSX.writeFile(wb, `${filename}.xlsx`, { bookType: "xlsx", compression: true, bookSST: true });
+  }
+  function downloadCurrentPartial() { downloadSheets(S.sheets, `${currentBaseName()}_partial`, S.currentJob, [...S.cellCache.values()]); }
+  async function downloadJobPartial(id) {
+    const job = await getJob(id); if (!job) return alert("This saved job has expired or was deleted.");
+    const cells = await getCells(id), sheets = copy(job.sourceSheets);
+    for (const s of sheets) {
+      const si = sheets.findIndex((x) => x.name === s.name), cfg = job.cfg[si] || {};
+      for (const [key, idx] of Object.entries(job.columnMap || {}).filter(([k]) => k.startsWith(`${si}:`))) {
+        const [, src, lang] = key.split(":");
+        for (const row of s.rows) while (row.length <= idx) row.push("");
+        if (cfg.header && s.rows[0]) s.rows[0][idx] = job.columnNames?.[key] || `${s.rows[0][+src] || colLetter(+src)} [${lang}]`;
+      }
+    }
+    for (const cell of cells) if (cell.status === "completed" || cell.status === "skipped") {
+      const si = sheets.findIndex((s) => s.name === cell.sheetName), idx = job.columnMap?.[`${si}:${cell.sourceCol}:${cell.langCode}`];
+      if (si >= 0 && idx != null && sheets[si].rows[cell.rowIdx]) sheets[si].rows[cell.rowIdx][idx] = cell.value;
+    }
+    const base = (job.sourceFileName || "TransShield").replace(/\.[^.]+$/, "");
+    downloadSheets(sheets, job.status === "completed" ? base : `${base}_partial`, job, cells);
+  }
+  async function resetCurrentJob() {
+    const job = S.currentJob; if (!job) return;
+    if (!confirm("Delete this job’s saved progress and restore the original workbook in this tab? This cannot be undone.")) return;
+    await deleteJob(job.id);
+    S.sheets = copy(job.sourceSheets); S.cfg = copy(job.cfg); S.jobColumnMap = null;
+    S.currentJob = null; S.cellCache.clear(); S.output = null; $("jobHud").classList.add("hidden"); render();
+  }
+  function showAuthError(error) {
+    const message = error.message || String(error);
+    const kind = error.authType || (error.status === 401 ? "token" : /invalid_client|client.?id|oauth.*client|client.*not found/i.test(message) ? "client" : error.status === 403 ? "permission" : "unknown");
+    const advice = kind === "token"
+      ? "Google rejected the current access token. Your saved progress is safe; tap “Sign in again” to request a fresh token. If your Google session is still active, this may complete without another account prompt."
+      : kind === "client"
+        ? "The Google OAuth client configuration appears invalid. Check the Client ID and its authorized JavaScript origin in Google setup."
+        : kind === "permission"
+          ? "Google denied access to this sheet or a requested scope. Check that the signed-in account can access the sheet and grant the requested Sheets/Drive permissions."
+          : "Check the Google Client ID, account access, and requested Sheets/Drive permissions.";
+    $("authMessage").textContent = `${message} ${advice} Saved translation progress has been retained.`;
+    if (!$("authDialog").open) $("authDialog").showModal();
+  }
+  function isAuthError(e) { return e?.auth || /Google (401|403)|unauthori[sz]ed|forbidden|invalid_client|client.?id|oauth.*client|client.*not found|insufficient.*scope|access_denied/i.test(e?.message || ""); }
+  function authorizeBeforeJob() {
+    let authorization;
+    try {
+      if (!localStorage.getItem(KEY)) { openSetup(); return Promise.resolve(false); }
+      authorization = signIn();
+    } catch (error) {
+      alert(error.message || "Google authorization is unavailable in this browser.");
+      return Promise.resolve(false);
+    }
+    return authorization.then(() => true).catch((error) => {
+      if (isAuthError(error)) showAuthError(error); else alert(error.message);
+      return false;
+    });
+  }
+  function applyPhonetics(text, rules) {
+    let value = text;
+    for (const { from, to } of rules || []) {
+      try { value = value.replace(new RegExp(esc(from), "giu"), to); } catch {}
+    }
+    return value;
+  }
+
+  const originalApi = api;
+  api = async function pacedRetryingApi(url, init = {}) {
+    const token = await signIn();
+    for (let attempt = 0; attempt <= RETRIES; attempt++) {
+      if (S.pacedGoogle) {
+        const remaining = 4000 - (Date.now() - S.lastGoogleRequestAt);
+        if (S.lastGoogleRequestAt && remaining > 0) await delay(remaining);
+      }
+      let response;
+      const began = performance.now();
+      try {
+        response = await fetch(url, { ...init, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8", ...(init.headers || {}) } });
+      } catch (error) {
+        if (S.timingActive) { const elapsed = performance.now() - began; S.currentJob.activeProcessingMs += elapsed; S.currentJob.windowProcessingMs = (S.currentJob.windowProcessingMs || 0) + elapsed; }
+        S.lastGoogleRequestAt = Date.now();
+        if (attempt < RETRIES) { await delay(BACKOFF[attempt]); continue; }
+        throw error;
+      }
+      if (S.timingActive) { const elapsed = performance.now() - began; S.currentJob.activeProcessingMs += elapsed; S.currentJob.windowProcessingMs = (S.currentJob.windowProcessingMs || 0) + elapsed; }
+      S.lastGoogleRequestAt = Date.now();
+      if (response.ok) return response.status === 204 ? undefined : response.json();
+      const body = await response.text(); let message = body;
+      try { message = JSON.parse(body).error?.message || body; } catch {}
+      const error = new Error(`Google ${response.status}: ${message}`);
+      if (response.status === 401 || response.status === 403 || /invalid_client|client.?id|insufficient.*scope/i.test(message)) {
+        error.auth = true; error.status = response.status;
+        error.authType = response.status === 401 ? "token" : /invalid_client|client.?id/i.test(message) ? "client" : "permission";
+        if (response.status === 401) S.token = null;
+        throw error;
+      }
+      if ([429, 500, 502, 503, 504].includes(response.status) && attempt < RETRIES) { await delay(BACKOFF[attempt]); continue; }
+      throw error;
+    }
+  };
+
+  async function matchingUnfinishedJob(knownId = null) {
+    showFingerprintNotice("");
+    const id = knownId || await fingerprint(S.source, S.sheets, targets());
+    const current = await getJob(id);
+    if (current && current.expiresAt >= Date.now() && current.status !== "completed") {
+      if (sameWorkbookData(current.sourceSheets, S.sheets)) return current;
+      showFingerprintNotice("A saved job had a matching fingerprint but different source cells. It will not be resumed; a separate job will be used.");
+      return null;
+    }
+    const oldId = await legacyFingerprint(S.source, S.sheets, targets());
+    const legacy = oldId === id ? null : await getJob(oldId);
+    if (legacy && legacy.expiresAt >= Date.now() && legacy.status !== "completed") {
+      if (sameWorkbookData(legacy.sourceSheets, S.sheets) && sameSavedSettings(legacy)) return legacy;
+      showFingerprintNotice("A previous saved job matches the file name, sheet names, row count, and languages, but its source cells or settings differ. It will not be reused; start a fresh job to avoid mismatched translations.");
+    }
+    return null;
+  }
+  function setResumeBanner(job) {
+    autoJob = job;
+    if (!job) { resumeBanner.hidden = true; return; }
+    const total = job.totalCells || 0, done = job.completedCells + job.skippedCells;
+    const pct = total ? Math.floor(done / total * 100) : 0;
+    resumeBanner.innerHTML = `<p><b>Unfinished translation found for ${html(job.sourceFileName)} (${pct}% complete).</b> Resume with saved cells or start over?</p><div style="display:flex;gap:6px;flex-wrap:wrap"><button data-resume="yes">Restore &amp; Resume</button><button class="sec" data-partial="yes">Download Partial .xlsx</button><button class="sec" data-startover="yes">Start over</button><button class="sec" data-dismiss="yes">Dismiss</button></div>`;
+    resumeBanner.hidden = false;
+    resumeBanner.onclick = async (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.resume) { resumeBanner.hidden = true; if (await authorizeBeforeJob()) await startJob(job); }
+      else if (b.dataset.partial) await downloadJobPartial(job.id);
+      else if (b.dataset.dismiss) resumeBanner.hidden = true;
+      else if (b.dataset.startover) {
+        if (!confirm("Delete the unfinished saved job and its translated cells, then start a fresh run?")) return;
+        const authorization = authorizeBeforeJob();
+        if (!await authorization) return;
+        const releaseLock = await acquireRunLock(job.id);
+        if (!releaseLock) { alert("This saved translation is active in another tab and cannot be replaced yet."); return; }
+        try { await deleteJob(job.id); resumeBanner.hidden = true; }
+        finally { await releaseLock(); }
+        await startJob(null, true);
+      }
+    };
+  }
+  async function acquireIndexedDbLease(id) {
+    const owner = `${tabId}:${Date.now().toString(36)}`;
+    const d = await openDB(), tx = d.transaction("locks", "readwrite"), done = transactionDone(tx);
+    let acquired = false;
+    const store = tx.objectStore("locks"), req = store.get(id);
+    req.onsuccess = () => {
+      const current = req.result;
+      if (current && current.expiresAt > Date.now() && current.owner !== owner) return;
+      store.put({ id, owner, expiresAt: Date.now() + LOCK_LEASE_MS });
+      acquired = true;
+    };
+    await done;
+    if (!acquired) return null;
+    S.jobLockLost = false;
+    let released = false;
+    const refresh = async () => {
+      if (released) return;
+      const tx2 = d.transaction("locks", "readwrite"), done2 = transactionDone(tx2), store2 = tx2.objectStore("locks"), get = store2.get(id);
+      get.onsuccess = () => {
+        if (get.result?.owner !== owner) { S.jobLockLost = true; return; }
+        store2.put({ id, owner, expiresAt: Date.now() + LOCK_LEASE_MS });
+      };
+      await done2;
+    };
+    const timer = setInterval(() => refresh().catch(() => { S.jobLockLost = true; }), LOCK_REFRESH_MS);
+    const onVisibility = () => { if (!document.hidden) refresh().catch(() => { S.jobLockLost = true; }); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return async () => {
+      released = true; clearInterval(timer); document.removeEventListener("visibilitychange", onVisibility);
+      const tx3 = d.transaction("locks", "readwrite"), done3 = transactionDone(tx3), store3 = tx3.objectStore("locks"), get = store3.get(id);
+      get.onsuccess = () => { if (get.result?.owner === owner) store3.delete(id); };
+      await done3.catch(() => {});
+    };
+  }
+  async function acquireRunLock(id) {
+    const name = `transshield-job:${id}`;
+    if (navigator.locks?.request) {
+      let unlock, decided = false;
+      const hold = new Promise((resolve) => { unlock = resolve; });
+      const granted = new Promise((resolve, reject) => {
+        navigator.locks.request(name, { mode: "exclusive", ifAvailable: true }, async (lock) => {
+          if (!lock) { decided = true; resolve(null); return; }
+          decided = true; resolve(() => unlock());
+          await hold;
+        }).catch((error) => { if (!decided) reject(error); });
+      });
+      const release = await granted;
+      if (release) S.jobLockLost = false;
+      return release;
+    }
+    return acquireIndexedDbLease(id);
+  }
+  function assertRunLock() {
+    if (S.jobLockLost) throw new Error("This tab lost its translation-job lock. Stop here and resume the saved job in one tab to avoid conflicting writes.");
+  }
+  const originalLoadSheets = loadSheets;
+  loadSheets = function (sheets, source) {
+    S.jobColumnMap = null; S.currentJob = null; S.cellCache = new Map();
+    originalLoadSheets(sheets, source);
+    setTimeout(() => matchingUnfinishedJob().then(setResumeBanner).catch((e) => console.warn("Could not check saved jobs:", e)), 20);
+  };
+
+  async function showRecentJobs() {
+    try {
+      const jobs = (await getAllJobs()).filter((j) => j.expiresAt >= Date.now()).sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+      const rows = await Promise.all(jobs.map(async (j) => {
+        if (!j.failedByLanguage && j.failedCells) {
+          const cells = await getCells(j.id), breakdown = {};
+          for (const cell of cells) if (cell.status === "failed") breakdown[cell.langCode] = (breakdown[cell.langCode] || 0) + 1;
+          j.failedByLanguage = breakdown;
+        }
+        const done = j.completedCells + j.skippedCells, total = j.totalCells || 0;
+        const badge = j.status === "failed" ? "interrupted" : j.status;
+        const elapsed = prettyTime(jobElapsedMs(j));
+        const eta = estimateRemainingMs(j);
+        const etaLabel = j.status === "paused" || j.status === "interrupted" ? "resume to estimate" : eta == null ? "estimating…" : "~" + prettyTime(eta);
+        const time = j.status === "completed" ? `Total ${elapsed}` : `Elapsed ${elapsed}<div class="small">ETA ${etaLabel}</div>`;
+        const failures = Object.entries(j.failedByLanguage || {}).filter(([, count]) => count > 0).map(([lang, count]) => `${html(lang)}: ${count}`).join(" · ");
+        const downloadLabel = j.status === "completed" ? "Download .xlsx" : "Partial .xlsx";
+        return `<tr><td class="sel"><b>${html(j.sourceFileName)}</b><div class="small">${html((j.sheetNames || []).join(", "))}</div></td><td>${new Date(j.lastActiveAt || j.createdAt).toLocaleString()}</td><td>${done.toLocaleString()} / ${total.toLocaleString()} cells · ${j.targetLanguages.length} language(s)${failures ? `<div class="small err">Failures — ${failures}</div>` : ""}</td><td><span class="job-status ${badge}">${statusLabel(j.status)}</span></td><td>${time}</td><td><div style="display:flex;gap:4px;flex-wrap:wrap"><button data-action="restore" data-id="${html(j.id)}">Restore &amp; Resume</button>${j.failedCells ? `<button class="sec" data-action="retry" data-id="${html(j.id)}">Retry failed only</button>` : ""}<button class="sec" data-action="download" data-id="${html(j.id)}">${downloadLabel}</button><button class="sec" data-action="delete" data-id="${html(j.id)}">Delete</button></div></td></tr>`;
+      }));
+      $("recentRows").innerHTML = rows.length ? rows.join("") : `<tr><td colspan="6" class="small">No saved jobs in the last seven days.</td></tr>`;
+      if (!recentDialog.open) recentDialog.showModal();
+    } catch (e) { alert(`Could not read recent jobs: ${e.message}`); }
+  }
+  async function handleRecentAction(e) {
+    const b = e.target.closest("button[data-action]"); if (!b) return;
+    const { action, id } = b.dataset;
+    if (action === "download") return downloadJobPartial(id);
+    if ((action === "restore" || action === "retry") && !await authorizeBeforeJob()) return;
+    if (action === "retry") {
+      const job = await getJob(id); if (!job) return showRecentJobs();
+      recentDialog.close(); return startJob(job, false, true);
+    }
+    if (action === "delete") {
+      if (!confirm("Permanently delete this saved job and its cell results?")) return;
+      await deleteJob(id); return showRecentJobs();
+    }
+    const job = await getJob(id); if (!job) return showRecentJobs();
+    recentDialog.close(); await startJob(job);
+  }
+
+  async function startJob(savedJob = null, forceFresh = false, retryFailedOnly = false) {
+    if (S.running || workerPromise) return;
+    let releaseLock = null, lockedJob = null;
+    try {
+      const requestedLockId = savedJob?.id || await fingerprint(S.source, S.sheets, targets());
+      releaseLock = await acquireRunLock(requestedLockId);
+      if (!releaseLock) { alert("This translation is already running in another tab. Resume it there, or wait for that tab to finish."); return; }
+      S.releaseJobLock = releaseLock;
+      let job = savedJob;
+      if (!job && !forceFresh) job = await matchingUnfinishedJob(requestedLockId);
+      if (!job) job = await createJob();
+      if (!job) { alert("There are no blank translation cells to process."); return; }
+      if (job.id !== requestedLockId) {
+        await releaseLock(); releaseLock = await acquireRunLock(job.id);
+        if (!releaseLock) { alert("This saved translation is already running in another tab. Resume it there, or wait for that tab to finish."); return; }
+        S.releaseJobLock = releaseLock;
+      }
+      lockedJob = job;
+      S.retryFailedOnly = retryFailedOnly;
+      pauseRequested = false; stopRequested = false; S.running = true;
+      $("prog").classList.remove("hidden"); $("done").classList.add("hidden"); $("log").innerHTML = ""; $("pbar").value = 0;
+      const cells = await getCells(job.id);
+      prepareOutput(job, cells); updateJobConfig(job);
+      job.startedAt = job.startedAt || Date.now();
+      job.status = "running"; job.lastActiveAt = Date.now(); await saveJob(job);
+      S.currentJob = job; S.timingActive = true; S.pacedGoogle = true; S.lastGoogleRequestAt = 0;
+      workerPromise = runQueue(job);
+      await workerPromise;
+    } catch (e) {
+      const job = lockedJob || S.currentJob;
+      if (job && S.running && !S.jobLockLost) { job.status = "interrupted"; job.lastActiveAt = Date.now(); await saveJob(job).catch(() => {}); paintHud(job); }
+      log("Error: " + e.message);
+      if (isAuthError(e)) showAuthError(e); else alert(e.message);
+    } finally {
+      if (releaseLock) await releaseLock();
+      S.releaseJobLock = null;
+      S.retryFailedOnly = false;
+      S.timingActive = false; S.pacedGoogle = false; S.running = false; workerPromise = null;
+      if (S.currentJob) { paintHud(S.currentJob); render(); }
+    }
+  }
+  function descriptorFor(job, item, layouts) {
+    const [siText, rowText, idxText] = item.key.split(":");
+    const si = +siText, rowIdx = +rowText, idx = +idxText;
+    const out = layouts[si]?.outs.find((o) => o.idx === idx);
+    if (!out) return null;
+    return { item, si, sheetName: S.sheets[si].name, rowIdx, sourceCol: out.src, langCode: out.lang, text: item.text };
+  }
+  async function waitCooldown(job) {
+    if (!job.cooldownUntil) job.cooldownUntil = Date.now() + (job.cooldownRemainingMs || COOLDOWN_MS);
+    job.status = "cooldown";
+    job.cooldownRemainingMs = Math.max(0, job.cooldownUntil - Date.now());
+    await saveJob(job); paintHud(job);
+    while (job.cooldownUntil > Date.now() && !pauseRequested && !stopRequested) {
+      await delay(Math.min(1000, job.cooldownUntil - Date.now()));
+      job.cooldownRemainingMs = Math.max(0, job.cooldownUntil - Date.now());
+      paintHud(job);
+    }
+    job.cooldownRemainingMs = Math.max(0, job.cooldownUntil - Date.now());
+    if (!job.cooldownRemainingMs) {
+      job.cooldownUntil = 0; job.windowProcessingMs = 0;
+      job.cooldownCount = (job.cooldownCount || 0) + 1;
+      sendBrowserNotification("Cooldown complete", `${job.sourceFileName || "Translation job"} is ready to continue.`);
+    }
+    await saveJob(job); paintHud(job);
+    return !job.cooldownRemainingMs;
+  }
+  const TEMP_KEY = "transshield.tempSheets";
+  const tempList = () => { try { return JSON.parse(localStorage.getItem(TEMP_KEY) || "[]"); } catch { return []; } };
+  const tempSave = (l) => { try { localStorage.setItem(TEMP_KEY, JSON.stringify(l)); } catch {} };
+  const trackTemp = (id, jobId) => tempSave([...tempList().filter((e) => e.id !== id), { id, jobId }]);
+  async function dropTemp(id) {
+    try { await api(`https://www.googleapis.com/drive/v3/files/${id}`, { method: "DELETE" }); tempSave(tempList().filter((e) => e.id !== id)); }
+    catch (e) { if (/ 404/.test(e.message)) tempSave(tempList().filter((e2) => e2.id !== id)); else if (e.auth) throw e; }
+  }
+  async function cleanupTemps(job) {
+    for (const e of tempList()) {
+      if (e.jobId === job.id) { await dropTemp(e.id); continue; }
+      const free = await acquireRunLock(e.jobId);
+      if (!free) continue;
+      try { await dropTemp(e.id); } finally { await free(); }
+    }
+  }
+  async function runQueue(job) {
+    let tempSheet = null;
+    try {
+      assertRunLock();
+      await cleanupTemps(job).catch((e) => console.warn("Temp sheet cleanup skipped:", e));
+      if (job.cooldownUntil > Date.now() || job.cooldownRemainingMs > 0) await waitCooldown(job);
+      const { jobs, layouts } = buildPlan();
+      const descriptors = jobs.map((j) => descriptorFor(job, j, layouts)).filter((d) => {
+        if (!d) return false;
+        return !S.retryFailedOnly || S.cellCache.get(cellCacheKey(d))?.status === "failed";
+      });
+      if (S.retryFailedOnly) log(`Retrying failed cells only (${descriptors.length} queued); other pending cells are left untouched.`);
+      const skipRecords = [], grouped = new Map();
+      for (const d of descriptors) {
+        if (shouldSkip(d.text)) skipRecords.push(cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, d.langCode, "skipped", d.text));
+        else {
+          const key = `${d.langCode}\u0000${d.text}`;
+          if (!grouped.has(key)) grouped.set(key, { lang: d.langCode, text: d.text, cells: [] });
+          grouped.get(key).cells.push(d);
+        }
+      }
+      if (skipRecords.length) await commitRecords(job, skipRecords);
+      const langs = [...new Set([...grouped.values()].map((g) => g.lang))];
+      const totalFormulaGroups = grouped.size; let finishedGroups = 0, batchNumber = 0;
+      if (totalFormulaGroups) {
+        tempSheet = await createSS(`TransShield temp ${new Date().toISOString()}`, ["work"]);
+        trackTemp(tempSheet.spreadsheetId, job.id);
+        log("Created temporary Google Sheet for paced formula batches", 3);
+      }
+      for (const lang of langs) {
+        const groups = [...grouped.values()].filter((g) => g.lang === lang);
+        for (let st = 0; st < groups.length; st += FORMULA_BATCH) {
+          if (pauseRequested || stopRequested) break;
+          assertRunLock();
+          const batch = groups.slice(st, st + FORMULA_BATCH), end = batch.length + 1; batchNumber++;
+          const batchStartedAt = Date.now();
+          paintHud(job, `Language ${lang} · sheet ${batch[0]?.cells[0]?.sheetName || "—"} · micro-batch ${batchNumber} · ${batch.length} formulas`);
+          const payload = batch.map((g) => {
+            const protectedText = protect(g.text, job.protectionOptions || S.prot, job.protectedTerms || terms());
+            g.tokens = protectedText.tokens;
+            return applyPhonetics(protectedText.text, job.phoneticRules || []);
+          });
+          try {
+            assertRunLock();
+            await writeValues(tempSheet.spreadsheetId, [{ range: `work!A2:A${end}`, values: payload.map((t) => [t]) }], "RAW");
+            await writeValues(tempSheet.spreadsheetId, [{ range: `work!B2:B${end}`, values: batch.map((_, i) => [`=GOOGLETRANSLATE(A${i + 2},"${formulaCode(job.sourceLang || $("src").value)}","${formulaCode(lang)}")`]) }], "USER_ENTERED");
+            log(`[${lang}] Injected ${batch.length} formulas — verifying settled values`);
+            let vals = [], settled = false;
+            for (let attempt = 0; attempt < 31; attempt++) {
+              vals = await readValues(tempSheet.spreadsheetId, `work!B2:B${end}`);
+              settled = batch.every((_, i) => { const v = String(vals[i]?.[0] ?? "").trim(); return v && !/^(Loading\.{0,3})$/i.test(v); });
+              if (settled) break;
+            }
+            const records = []; let lost = 0;
+            batch.forEach((g, i) => {
+              const raw = String(vals[i]?.[0] ?? "").trim();
+              const ok = raw && !/^Loading\.{0,3}$/i.test(raw) && !/^#(?:N\/A|ERROR|VALUE|REF|NAME|NUM|DIV\/0)/i.test(raw);
+              const value = ok ? restore(raw, g.tokens) : "";
+              if (ok && g.tokens.some((t) => !value.includes(t))) lost++;
+              for (const d of g.cells) records.push(cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, lang, ok ? "completed" : "failed", value));
+            });
+            if (lost) log(`[${lang}] Warning: ${lost} translation(s) may have lost a protected token — please review.`);
+            assertRunLock();
+            addThroughputSample(job, records, batchStartedAt);
+            await commitRecords(job, records);
+            finishedGroups += batch.length;
+            log(`[${lang}] Saved ${records.filter((r) => r.status === "completed").length} cells · ${job.completedCells}/${job.totalCells} complete`, Math.min(95, Math.round((finishedGroups / Math.max(1, totalFormulaGroups)) * 90) + 5));
+          } catch (error) {
+            if (isAuthError(error) || S.jobLockLost) throw error;
+            const failed = batch.flatMap((g) => g.cells.map((d) => cellRecord(job, d.sheetName, d.rowIdx, d.sourceCol, lang, "failed", "")));
+            await commitRecords(job, failed);
+            finishedGroups += batch.length;
+            log(`[${lang}] Micro-batch failed after retries; marked only these ${failed.length} cells failed: ${error.message}`);
+          }
+          if ((job.windowProcessingMs || 0) >= ACTIVE_LIMIT && !pauseRequested && !stopRequested) {
+            const cooled = await waitCooldown(job);
+            if (!cooled) break;
+            job.status = "running"; await saveJob(job); paintHud(job);
+          }
+        }
+        if (pauseRequested || stopRequested) break;
+      }
+      assertRunLock();
+      if (tempSheet) { await dropTemp(tempSheet.spreadsheetId); tempSheet = null; }
+      if (stopRequested) {
+        job.status = "interrupted"; log("Stopped safely. Completed cells remain saved; use Restore & Resume to continue.");
+      } else if (pauseRequested) {
+        job.status = "paused"; log("Paused safely after the current micro-batch. Saved results are ready to resume.");
+      } else {
+        const remaining = Math.max(0, job.totalCells - job.completedCells - job.skippedCells - job.failedCells);
+        job.status = remaining || job.failedCells ? "interrupted" : "completed";
+        if (job.status === "completed") {
+          job.completedAt = job.completedAt || Date.now(); S.output = copy(S.sheets); $("done").classList.remove("hidden");
+          $("saveBtn").classList.toggle("hidden", S.source.kind !== "file");
+          $("pbar").value = 100; log("Done — completed cells are frozen as static text.", 100);
+          if (!job.completionNotificationSent && (jobElapsedMs(job) >= ACTIVE_LIMIT || job.cooldownCount > 0)) {
+            sendBrowserNotification("Translation complete", `${job.sourceFileName || "Your workbook"} is ready to download.`);
+            job.completionNotificationSent = true;
+          }
+          if (S.source.kind === "gsheet") {
+            try {
+              const data = [];
+              const current = buildPlan().layouts;
+              current.forEach((layout, si) => layout.outs.forEach((o) => {
+                const letter = colLetter(o.idx), rows = S.sheets[si].rows;
+                data.push({ range: `${q(S.sheets[si].name)}!${letter}1:${letter}${rows.length}`, values: rows.map((r) => [r[o.idx] || ""]) });
+              }));
+              log("Writing completed translations to the loaded Google Sheet…");
+              await ensureGrid(S.source.id, S.sheets.map((sh, si) => ({ title: sh.name, rows: sh.rows.length, cols: Math.max(width(sh.rows), ...current[si].outs.map((o) => o.idx + 1)) })));
+              await writeValues(S.source.id, data, "RAW");
+              showLink(`https://docs.google.com/spreadsheets/d/${S.source.id}/edit`);
+            } catch (e) { log(`Local job completed; Google Sheet write-back failed: ${e.message}`); if (isAuthError(e)) showAuthError(e); }
+          }
+        } else log(`Run ended with ${job.failedCells} failed and ${remaining} pending cell(s). You can resume or download a partial workbook.`);
+      }
+      job.lastActiveAt = Date.now(); await saveJob(job); paintHud(job); render();
+    } finally {
+      if (tempSheet) await dropTemp(tempSheet.spreadsheetId).catch(() => {});
+    }
+  }
+
+  const originalOnFile = onFile;
+  onFile = async function (file) { if (!file) return; setResumeBanner(null); return originalOnFile(file); };
+  injectUI();
+  const renderBeforeGlobalSelector = render;
+  render = function (...args) {
+    const result = renderBeforeGlobalSelector.apply(this, args);
+    syncGlobalColumns();
+    return result;
+  };
+  syncGlobalColumns();
+  // Preserve a mapped output index for headerless workbooks across reloads.
+  $("runBtn").title = "Start or resume the saved translation job";
+  rulesArea.addEventListener("change", () => { if (S.currentJob && !S.running) updateJobConfig(S.currentJob); });
+  $("langs").addEventListener("change", () => { if (S.currentJob && !S.running) updateJobConfig(S.currentJob); });
+  window.addEventListener("beforeunload", () => {
+    if (S.currentJob && ["running", "cooldown"].includes(S.currentJob.status)) { S.currentJob.status = "interrupted"; saveJob(S.currentJob).catch(() => {}); }
+    S.releaseJobLock?.();
+  });
+
+  const signInForStorageProtection = signIn;
+  signIn = function(...args) {
+    const promise = signInForStorageProtection.apply(this, args);
+    promise.then(() => updateStorageProtection(true)).catch(() => {});
+    return promise;
+  };
+  updateStorageProtection(false).catch(() => {});
+  openDB().then(pruneExpired).catch((e) => {
+    console.error(e);
+    log(`Local job persistence unavailable: ${e.message}`);
+    $("runBtn").disabled = true;
+  });
+})();
+</script>
+</body>
+</html>
